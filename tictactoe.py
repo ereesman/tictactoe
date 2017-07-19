@@ -4,125 +4,120 @@ from curses import wrapper
 
 """
 A game of tic tac toe
+
+TODO(eddie):
+* idempotent draw routine
+* semi-blocking event loop
+
 """
-
-board = [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "]
+GAME_PIECE_LOCS = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+GAME_BOARD_TEMPLATE = ' {} | {} | {} \n ----------- \n {} | {} | {} \n ----------- \n {} | {} | {} \n'
 turn = 1
+TURN_MSG_TEMPLATE = 'Turn: {}\n\n'
+PLAYER_TURN_MSG_TEMPLATE = '\nPlayer {} turn, enter a board position 1...9: '
 
-def print_board(stdscr):
-    global board
+state = {
+    'turn_num': turn,
+    'game_piece_locs': GAME_PIECE_LOCS,
+    'message': {
+        'data': [
+            TURN_MSG_TEMPLATE.format(turn),
+            GAME_BOARD_TEMPLATE.format(GAME_PIECE_LOCS[1], GAME_PIECE_LOCS[2], GAME_PIECE_LOCS[3],
+                                       GAME_PIECE_LOCS[4], GAME_PIECE_LOCS[5], GAME_PIECE_LOCS[6],
+                                       GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8], GAME_PIECE_LOCS[9]),
+            PLAYER_TURN_MSG_TEMPLATE.format('x')], 'expiry': time.time() + 1}}
 
-    stdscr.addstr(' ' + board[1] + ' | ' + board[2] + ' | ' + board[3] + ' \n' +
-                  '-----------\n' +
-                  ' ' + board[4] + ' | ' + board[5] + ' | ' + board[6] + ' \n' +
-                  '-----------\n' +
-                  ' ' + board[7] + ' | ' + board[8] + ' | ' + board[9] + ' \n')
+def construct_game_board(game_piece_locs):
+    return GAME_BOARD_TEMPLATE.format(GAME_PIECE_LOCS[1], GAME_PIECE_LOCS[2], GAME_PIECE_LOCS[3],
+                                      GAME_PIECE_LOCS[4], GAME_PIECE_LOCS[5], GAME_PIECE_LOCS[6],
+                                      GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8], GAME_PIECE_LOCS[9])
 
 def is_tic_tac_toe(player):
-    global board
-
+    global state
     # left to right check
-    if board[1] == player and board[2] == player and board[3] == player:
+    if state['game_piece_locs'][1] == player and state['game_piece_locs'][2] == player and state['game_piece_locs'][3] == player:
         return True
-    elif board[4] == player and board[5] == player and board[6] == player:
+    elif state['game_piece_locs'][4] == player and state['game_piece_locs'][5] == player and state['game_piece_locs'][6] == player:
         return True
-    elif board[7] == player and board[8] == player and board[9] == player:
+    elif state['game_piece_locs'][7] == player and state['game_piece_locs'][8] == player and state['game_piece_locs'][9] == player:
         return True
     # top to bottom check
-    if board[1] == player and board[4] == player and board[7] == player:
+    if state['game_piece_locs'][1] == player and state['game_piece_locs'][4] == player and state['game_piece_locs'][7] == player:
         return True
-    elif board[2] == player and board[5] == player and board[8] == player:
+    elif state['game_piece_locs'][2] == player and state['game_piece_locs'][5] == player and state['game_piece_locs'][8] == player:
         return True
-    elif board[3] == player and board[6] == player and board[9] == player:
+    elif state['game_piece_locs'][3] == player and state['game_piece_locs'][6] == player and state['game_piece_locs'][9] == player:
         return True
     # diagonal check
-    if board[1] == player and board[5] == player and board[9] == player:
+    if state['game_piece_locs'][1] == player and state['game_piece_locs'][5] == player and state['game_piece_locs'][9] == player:
         return True
-    elif board[3] == player and board[5] == player and board[7] == player:
+    elif state['game_piece_locs'][3] == player and state['game_piece_locs'][5] == player and state['game_piece_locs'][7] == player:
         return True
     else:
         return False
 
 def is_game_over(stdscr):
-    global board
-    global turn
+    global state
+    x_wins_msg = 'Game over! x wins!\n\n'
+    o_wins_msg = 'Game over! o wins!\n\n'
+    draw_msg = 'Game over! Draw!\n\n'
 
     stdscr.clear()
     if is_tic_tac_toe('x'):
-        stdscr.addstr('Game over! x wins!\n\n')
-        print_board(stdscr)
-        stdscr.refresh()
         return True
     elif is_tic_tac_toe('o'):
-        stdscr.addstr('Game over! o wins!\n\n')
-        print_board(stdscr)
-        stdscr.refresh()
         return True
-    elif turn >= 10:
-        stdscr.addstr('Game over! Draw!\n\n')
-        print_board(stdscr)
-        stdscr.refresh()
+    elif state['turn_num'] == 10:
         return True
     else:
         return False
 
-def print_board_pos_occupied(stdscr):
-    global board
-    global turn
-
+def draw(stdscr, now):
+    global state
     stdscr.clear()
-    stdscr.addstr('Turn: ' + str(turn) + '\n\n')
-    print_board(stdscr)
-    stdscr.addstr('\nBoard position is occupied!')
+    if now < state['message']['expiry']:
+        for msg in state['message']['data']:
+            stdscr.addstr(msg)
     stdscr.refresh()
-    time.sleep(1)
 
-def print_not_a_number(stdscr):
-    global board
-    global turn
+def update_state(c, now):
+    global state
+    global TURN_MSG_TEMPLATE
+    global PLAYER_TURN_MSG_TEMPLATE
+    player_o_turn_msg = '\nPlayer o turn, enter a board position 1...9: '
+ 
+    if state['turn_num'] % 2 is not 0:
+        try:
+            if state['game_piece_locs'][int(chr(c))] == ' ':
+                state['game_piece_locs'][int(chr(c))] = 'x'
+                state['turn_num'] += 1
+        except ValueError:
+            pass
+        game_board = construct_game_board(state['game_piece_locs'])
+        state['message'] = {'data': [TURN_MSG_TEMPLATE.format(state['turn_num']), game_board, PLAYER_TURN_MSG_TEMPLATE.format('x')], 'expiry': now + 1}
+    else:
+        try:
+            if state['game_piece_locs'][int(chr(c))] == ' ':
+                state['game_piece_locs'][int(chr(c))] = 'o'
+                state['turn_num'] += 1
+        except ValueError:
+            pass
+        game_board = construct_game_board(state['game_piece_locs'])
+        state['message'] = {'data': [TURN_MSG_TEMPLATE.format(state['turn_num']), game_board, PLAYER_TURN_MSG_TEMPLATE.format('o')], 'expiry': now + 1}
 
-    stdscr.clear()
-    stdscr.addstr('Turn: ' + str(turn) + '\n\n')
-    print_board(stdscr)
-    stdscr.addstr('\noops, you didn\'t enter a number!')
-    stdscr.refresh()
-    time.sleep(1)
 
 def game_loop(stdscr):
-    global board
-    global turn
-    
-    # inside game loop
+    global state
+
     while not is_game_over(stdscr):
-
-        stdscr.clear()
-        stdscr.addstr('Turn: ' + str(turn) + '\n\n')
-        print_board(stdscr)
-        stdscr.refresh()
-
-        if turn % 2 is not 0:
-            stdscr.addstr('\nPlayer x turn, enter a board position 1...9: ')
-            c = stdscr.getch()
-            try:
-                if board[int(chr(c))] == ' ':
-                    board[int(chr(c))] = 'x'
-                    turn += 1
-                else:
-                    print_board_pos_occupied(stdscr)
-            except ValueError:
-                print_not_a_number(stdscr)
-        else:
-            stdscr.addstr('\nPlayer o turn, enter a board position 1...9: ')
-            stdscr.refresh()
-            c = stdscr.getch()
-            try:
-                if board[int(chr(c))] == ' ':
-                    board[int(chr(c))] = 'o'
-                    turn += 1
-                else:
-                    print_board_pos_occupied(stdscr)
-            except ValueError:
-                print_not_a_number(stdscr)
+        now = time.time()
+        draw(stdscr, now)
+        curses.napms(100)
+        c = stdscr.getch()
+        if c is not None:
+            update_state(c, now)
+        draw(stdscr, now)
+    draw(stdscr, now)
 
     input('\nCTRL + C TO EXIT')
 
