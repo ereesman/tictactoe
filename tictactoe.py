@@ -17,22 +17,24 @@ TODO(eddie):
 * minmax AI (computer opponent)
 
 """
+
+
 GAME_START = None
 GAME_PIECE_LOCS = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 GAME_BOARD_TEMPLATE = '\n\n     +-----------+\n     | {0} | {1} | {2} |\n     |-----------| \n     | {3} | {4} | {5} |\n     |-----------| \n     | {6} | {7} | {8} |\n     +-----------+'
 PLAYER_TURN_MSG_TEMPLATE = '\n\n    Player {0}\'s turn!'
 GAME_CLOCK_TEMPLATE = '\n\n       +-------+\n       |{0}|\n       +-------+\n'
 
-
 STATE = {
     'turn_num': 1,
     'game_piece_locs': GAME_PIECE_LOCS,
     'message': {
         'data': [
-            PLAYER_TURN_MSG_TEMPLATE.format('x'), 
+            PLAYER_TURN_MSG_TEMPLATE.format('x'),
             GAME_BOARD_TEMPLATE.format(GAME_PIECE_LOCS[0], GAME_PIECE_LOCS[1], GAME_PIECE_LOCS[2],
                                        GAME_PIECE_LOCS[3], GAME_PIECE_LOCS[4], GAME_PIECE_LOCS[5],
-                                       GAME_PIECE_LOCS[6], GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8])],
+                                       GAME_PIECE_LOCS[6], GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8])
+        ],
         'expire_at': time.time() + 1
     },
     'cursor': {
@@ -125,7 +127,7 @@ def draw(stdscr, now):
     if now < STATE['message']['expire_at']:
         logging.debug('message is not expired...')
         for msg in STATE['message']['data']:
-            stdscr.addstr(msg)
+            stdscr.addstr(msg, curses.color_pair(1))
             logging.debug('drew message: \n{0}\n'.format(msg))
     # move the cursor
     stdscr.addstr(STATE['cursor']['y'], STATE['cursor']['x'], '')
@@ -277,6 +279,8 @@ def update_state(stdscr, c):
 def game_loop(stdscr):
     global STATE
     global GAME_START
+
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
     # non-blocking on input
     stdscr.nodelay(1)
