@@ -1,4 +1,5 @@
 import time
+import sys
 import datetime
 import logging
 import curses
@@ -37,30 +38,71 @@ def calculate_time_elapsed(state):
     return str(datetime.timedelta(seconds=round(time.time() - state['game_start'])))
 
 def calculate_hovered_square(state):
-    index = None
     x = state['cursor']['x'] 
     y = state['cursor']['y'] 
 
     if x == 7 and y == 5:
-        index = 0
+        return 0
     if x == 11 and y == 5:
-        index = 1
+        return 1
     if x == 15 and y == 5:
-        index = 2
+        return 2
     if x == 7 and y == 7:
-        index = 3
+        return 3
     if x == 11 and y == 7:
-        index = 4
+        return 4
     if x == 15 and y == 7:
-        index = 5
+        return 5
     if x == 7 and y == 9:
-        index = 6
+        return 6
     if x == 11 and y == 9:
-        index = 7
+        return 7
     if x == 15 and y == 9:
-        index = 8
+        return 8
 
-    return index
+def find_lowest_empty_square(state, direction, preference):
+    """
+    given state return the lowest empty square by index in target direction
+    """
+    game_piece_array = state['game_piece_locs']
+    if direction == 'up':
+        for i in preference: # priority order for upwards moves
+            logging.debug('CHECKING LOCATION {}!'.format(i))
+            if game_piece_array[i] == ' ':
+                return i
+    elif direction == 'down':
+        for i in preference:
+            if game_piece_array[i] == ' ':
+                return i
+    elif direction == 'left':
+        for i in preference:
+            if game_piece_array[i] == ' ':
+                return i
+    elif direction == 'right':
+        for i in preference:
+            if game_piece_array[i] == ' ':
+                return i
+    return calculate_hovered_square(state) # don't move the cursor
+
+def map_index_to_coordinate(index):
+    if index == 0:
+        return (7, 5)
+    if index == 1:
+        return (11, 5)
+    if index == 2:
+        return (15, 5)
+    if index == 3:
+        return (7, 7)
+    if index == 4:
+        return (11, 7)
+    if index == 5:
+        return (15, 7)
+    if index == 6:
+        return (7, 9)
+    if index == 7:
+        return (11, 9)
+    if index == 8:
+        return (15, 9)
 
 def construct_game_board(game_piece_locs):
     return GAME_BOARD_TEMPLATE.format(GAME_PIECE_LOCS[0], GAME_PIECE_LOCS[1], GAME_PIECE_LOCS[2],
@@ -173,21 +215,53 @@ def update_state(stdscr, curr_state, c):
             if chr(c) == 'a':
                 if curr_state['cursor']['x'] > 7:
                     new_state['cursor']['x'] -= 4
+                    if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
+                        logging.debug('LEFT - square is not empty!')
+                        free_sq = find_lowest_empty_square(new_state, "left", [3, 6, 0, 4, 1, 7])
+                        logging.debug('lowest free square is: {}'.format(free_sq))
+                        coord = map_index_to_coordinate(free_sq)
+                        logging.debug('coord is: {}'.format(coord))
+                        new_state['cursor']['x'] = coord[0]
+                        new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
                     logging.debug('cursor move left')
             if chr(c) == 'd':
                 if curr_state['cursor']['x'] < 12:
                     new_state['cursor']['x'] += 4
+                    if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
+                        logging.debug('RIGHT - square is not empty!')
+                        free_sq = find_lowest_empty_square(new_state, "right", [5, 2, 8, 4, 7, 1])
+                        logging.debug('lowest free square is: {}'.format(free_sq))
+                        coord = map_index_to_coordinate(free_sq)
+                        logging.debug('coord is: {}'.format(coord))
+                        new_state['cursor']['x'] = coord[0]
+                        new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
                     logging.debug('cursor move right')
             if chr(c) == 'w':
                 if curr_state['cursor']['y'] > 5:
                     new_state['cursor']['y'] -= 2
+                    if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
+                        logging.debug('UP - square is not empty!')
+                        free_sq = find_lowest_empty_square(new_state, "up", [1, 0, 2, 4, 3, 5])
+                        logging.debug('lowest free square is: {}'.format(free_sq))
+                        coord = map_index_to_coordinate(free_sq)
+                        logging.debug('coord is: {}'.format(coord))
+                        new_state['cursor']['x'] = coord[0]
+                        new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
                     logging.debug('cursor move up')
             if chr(c) == 's':
                 if curr_state['cursor']['y'] < 9:
                     new_state['cursor']['y'] += 2
+                    if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
+                        logging.debug('DOWN - square is not empty!')
+                        free_sq = find_lowest_empty_square(new_state, "down", [7, 6, 8, 5, 4, 6])
+                        logging.debug('lowest free square is: {}'.format(free_sq))
+                        coord = map_index_to_coordinate(free_sq)
+                        logging.debug('coord is: {}'.format(coord))
+                        new_state['cursor']['x'] = coord[0]
+                        new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
                     logging.debug('cursor move down')
         except ValueError:
@@ -212,6 +286,12 @@ def update_state(stdscr, curr_state, c):
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'x'
                             new_state['turn_num'] += 1
+                            free_sq = find_lowest_empty_square(new_state, "right", [1, 5, 7, 3, 0, 2, 6, 8])
+                            logging.debug('lowest free square is: {}'.format(free_sq))
+                            coord = map_index_to_coordinate(free_sq)
+                            logging.debug('coord is: {}'.format(coord))
+                            new_state['cursor']['x'] = coord[0]
+                            new_state['cursor']['y'] = coord[1]
                             game_board = construct_game_board(new_state['game_piece_locs'])
                             new_state['message'] = {
                                 'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
@@ -264,6 +344,12 @@ def update_state(stdscr, curr_state, c):
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'o'
                             new_state['turn_num'] += 1
+                            free_sq = find_lowest_empty_square(new_state, "right", [1, 5, 7, 3, 0, 2, 6, 8])
+                            logging.debug('lowest free square is: {}'.format(free_sq))
+                            coord = map_index_to_coordinate(free_sq)
+                            logging.debug('coord is: {}'.format(coord))
+                            new_state['cursor']['x'] = coord[0]
+                            new_state['cursor']['y'] = coord[1]
                             game_board = construct_game_board(new_state['game_piece_locs'])
                             new_state['message'] = {
                                 'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
@@ -321,6 +407,7 @@ def update_state(stdscr, curr_state, c):
         return new_state
 
 def game_loop(stdscr):
+    # color
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     # non-blocking on input
     stdscr.nodelay(1)
@@ -341,13 +428,12 @@ def game_loop(stdscr):
         if c == ord(' '):
             game_is_started = True
         else:
-            pass
+            stdscr.erase()
 
     # game start
     state = init_state()
-
     curses.curs_set(1)
-
+    # main game loop
     while not is_game_over(stdscr, state):
         logging.debug('START GAME LOOP!')
         now = time.time()
