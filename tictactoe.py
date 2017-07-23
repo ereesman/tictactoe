@@ -18,14 +18,17 @@ TODO(eddie):
 
 """
 
-
-GAME_START = None
 GAME_PIECE_LOCS = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 GAME_BOARD_TEMPLATE = '\n\n     +-----------+\n     | {0} | {1} | {2} |\n     |-----------| \n     | {3} | {4} | {5} |\n     |-----------| \n     | {6} | {7} | {8} |\n     +-----------+'
 PLAYER_TURN_MSG_TEMPLATE = '\n\n    Player {0}\'s turn!'
 GAME_CLOCK_TEMPLATE = '\n\n       +-------+\n       |{0}|\n       +-------+\n'
 
-STATE = {
+def init_state():
+    global GAME_BOARD_TEMPLATE
+    global GAME_PIECE_LOCS
+    global PLAYER_TURN_MSG_TEMPLATE
+
+    return {
     'turn_num': 1,
     'game_piece_locs': GAME_PIECE_LOCS,
     'message': {
@@ -40,16 +43,17 @@ STATE = {
     'cursor': {
         'x': 7,
         'y': 5
-    }
+    },
+    'game_start': time.time()
 }
 
-def calculate_time_elapsed():
-    return str(datetime.timedelta(seconds=round(time.time() - GAME_START)))
+def calculate_time_elapsed(state):
+    return str(datetime.timedelta(seconds=round(time.time() - state['game_start'])))
 
-def calculate_hovered_square():
+def calculate_hovered_square(state):
     index = None
-    x = STATE['cursor']['x'] 
-    y = STATE['cursor']['y'] 
+    x = state['cursor']['x'] 
+    y = state['cursor']['y'] 
 
     if x == 7 and y == 5:
         index = 0
@@ -77,68 +81,102 @@ def construct_game_board(game_piece_locs):
                                       GAME_PIECE_LOCS[3], GAME_PIECE_LOCS[4], GAME_PIECE_LOCS[5],
                                       GAME_PIECE_LOCS[6], GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8])
 
-def is_tic_tac_toe(player):
-    global STATE
-
+def is_tic_tac_toe(player, state):
     # left to right check
-    if STATE['game_piece_locs'][0] == player and STATE['game_piece_locs'][1] == player and STATE['game_piece_locs'][2] == player:
+    if state['game_piece_locs'][0] == player and state['game_piece_locs'][1] == player and state['game_piece_locs'][2] == player:
         return True
-    elif STATE['game_piece_locs'][3] == player and STATE['game_piece_locs'][4] == player and STATE['game_piece_locs'][5] == player:
+    elif state['game_piece_locs'][3] == player and state['game_piece_locs'][4] == player and state['game_piece_locs'][5] == player:
         return True
-    elif STATE['game_piece_locs'][6] == player and STATE['game_piece_locs'][7] == player and STATE['game_piece_locs'][8] == player:
+    elif state['game_piece_locs'][6] == player and state['game_piece_locs'][7] == player and state['game_piece_locs'][8] == player:
         return True
     # top to bottom check
-    if STATE['game_piece_locs'][0] == player and STATE['game_piece_locs'][3] == player and STATE['game_piece_locs'][6] == player:
+    if state['game_piece_locs'][0] == player and state['game_piece_locs'][3] == player and state['game_piece_locs'][6] == player:
         return True
-    elif STATE['game_piece_locs'][1] == player and STATE['game_piece_locs'][4] == player and STATE['game_piece_locs'][7] == player:
+    elif state['game_piece_locs'][1] == player and state['game_piece_locs'][4] == player and state['game_piece_locs'][7] == player:
         return True
-    elif STATE['game_piece_locs'][2] == player and STATE['game_piece_locs'][5] == player and STATE['game_piece_locs'][8] == player:
+    elif state['game_piece_locs'][2] == player and state['game_piece_locs'][5] == player and state['game_piece_locs'][8] == player:
         return True
     # diagonal check
-    if STATE['game_piece_locs'][0] == player and STATE['game_piece_locs'][4] == player and STATE['game_piece_locs'][8] == player:
+    if state['game_piece_locs'][0] == player and state['game_piece_locs'][4] == player and state['game_piece_locs'][8] == player:
         return True
-    elif STATE['game_piece_locs'][2] == player and STATE['game_piece_locs'][4] == player and STATE['game_piece_locs'][6] == player:
-        return True
-    else:
-        return False
-
-def is_game_over(stdscr):
-    global STATE
-
-    x_wins_msg = 'Game over! x wins!\n\n'
-    o_wins_msg = 'Game over! o wins!\n\n'
-    draw_msg = 'Game over! Draw!\n\n'
-
-    if is_tic_tac_toe('x'):
-        return True
-    elif is_tic_tac_toe('o'):
-        return True
-    elif STATE['turn_num'] == 10:
+    elif state['game_piece_locs'][2] == player and state['game_piece_locs'][4] == player and state['game_piece_locs'][6] == player:
         return True
     else:
         return False
 
-def draw(stdscr, now):
-    global STATE
+def is_game_over(stdscr, state):
+    x_wins_msg = '\n\n    Player x wins!'
+    o_wins_msg = '\n\n    Player o wins!'
+    draw_msg = '\n\n    Draw!'
 
+    if is_tic_tac_toe('x', state):
+        game_board = construct_game_board(state['game_piece_locs'])
+        state['message'] = {
+            'data': [x_wins_msg,
+                     game_board,
+                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))],
+            'expire_at': time.time() + 1
+        }
+        return True
+    elif is_tic_tac_toe('o', state):
+        game_board = construct_game_board(state['game_piece_locs'])
+        state['message'] = {
+            'data': [o_wins_msg,
+                     game_board,
+                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))],
+            'expire_at': time.time() + 1
+        }
+        return True
+    elif state['turn_num'] == 10:
+        game_board = construct_game_board(state['game_piece_locs'])
+        state['message'] = {
+            'data': [draw_msg,
+                     game_board,
+                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))],
+            'expire_at': time.time() + 1
+        }
+        return True
+    else:
+        return False
+
+def draw(stdscr, state,  now):
     stdscr.erase()
     logging.debug('cleared screen...')
     logging.debug('start drawing...')
-    if now < STATE['message']['expire_at']:
+    if now < state['message']['expire_at']:
         logging.debug('message is not expired...')
-        for msg in STATE['message']['data']:
-            stdscr.addstr(msg, curses.color_pair(1))
+        for msg in state['message']['data']:
+            try:
+                stdscr.addstr(msg, curses.color_pair(1))
+            except Exception:
+                stdscr.erase()
             logging.debug('drew message: \n{0}\n'.format(msg))
     # move the cursor
-    stdscr.addstr(STATE['cursor']['y'], STATE['cursor']['x'], '')
-    logging.debug('moved cursor to {0},{1}'.format(STATE['cursor']['y'], STATE['cursor']['x']))
+    try:
+        stdscr.addstr(state['cursor']['y'], state['cursor']['x'], '')
+    except Exception:
+        stdscr.erase()
+    logging.debug('moved cursor to {0},{1}'.format(state['cursor']['y'], state['cursor']['x']))
     stdscr.refresh()
     logging.debug('refreshed screen...')
     logging.debug('done drawing...')
 
-def update_state(stdscr, c):
-    global STATE
+def update_state(stdscr, curr_state, c):
     global PLAYER_TURN_MSG_TEMPLATE
+
+    new_state = {
+    'turn_num': curr_state['turn_num'],
+    'game_piece_locs': curr_state['game_piece_locs'],
+    'message': {
+        'data': [],
+        'expire_at': time.time() + 1
+    },
+    'cursor': {
+        'x': curr_state['cursor']['x'],
+        'y': curr_state['cursor']['y']
+    },
+    'game_start': curr_state['game_start']
+}
 
     # only enter the update routine if we received a keypress, 
     # otherwise extend current state
@@ -149,162 +187,182 @@ def update_state(stdscr, c):
         cursorMoved = False
         try:
             if chr(c) == 'a':
-                if STATE['cursor']['x'] > 7:
-                    STATE['cursor']['x'] -= 4
+                if curr_state['cursor']['x'] > 7:
+                    new_state['cursor']['x'] -= 4
                     cursorMoved = True
                     logging.debug('cursor move left')
             if chr(c) == 'd':
-                if STATE['cursor']['x'] < 12:
-                    STATE['cursor']['x'] += 4
+                if curr_state['cursor']['x'] < 12:
+                    new_state['cursor']['x'] += 4
                     cursorMoved = True
                     logging.debug('cursor move right')
             if chr(c) == 'w':
-                if STATE['cursor']['y'] > 5:
-                    STATE['cursor']['y'] -= 2
+                if curr_state['cursor']['y'] > 5:
+                    new_state['cursor']['y'] -= 2
                     cursorMoved = True
                     logging.debug('cursor move up')
             if chr(c) == 's':
-                if STATE['cursor']['y'] < 9:
-                    STATE['cursor']['y'] += 2
+                if curr_state['cursor']['y'] < 9:
+                    new_state['cursor']['y'] += 2
                     cursorMoved = True
                     logging.debug('cursor move down')
         except ValueError:
             pass
 
-        index = calculate_hovered_square()
+        index = calculate_hovered_square(curr_state)
         logging.debug('hovered square/index: {0}'.format(index))
 
         # x's turn
-        if STATE['turn_num'] % 2 is not 0:
+        if curr_state['turn_num'] % 2 is not 0:
             if cursorMoved:
-                game_board = construct_game_board(STATE['game_piece_locs'])
-                STATE['message'] = {
+                game_board = construct_game_board(new_state['game_piece_locs'])
+                new_state['message'] = {
                     'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
                              game_board,
-                             GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                             GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                     'expire_at': time.time() + 1
                 }
             else:
                 try:
                     if c == ord(' '): # spacebar keypress
-                        if STATE['game_piece_locs'][index] == ' ':
-                            STATE['game_piece_locs'][index] = 'x'
-                            STATE['turn_num'] += 1
-                            game_board = construct_game_board(STATE['game_piece_locs'])
-                            STATE['message'] = {
+                        if curr_state['game_piece_locs'][index] == ' ':
+                            new_state['game_piece_locs'][index] = 'x'
+                            new_state['turn_num'] += 1
+                            game_board = construct_game_board(new_state['game_piece_locs'])
+                            new_state['message'] = {
                                 'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
                                          game_board,
-                                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                                 'expire_at': time.time() + 1
                             }
                             logging.debug('set it back to player o\'s turn!')
+                        else:
+                            new_state['game_piece_locs'][index] = 'x'
+                            new_state['turn_num'] += 1
+                            game_board = construct_game_board(new_state['game_piece_locs'])
+                            new_state['message'] = {
+                                'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
+                                         game_board,
+                                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
+                                'expire_at': time.time() + 1
+                            }
                     else: # not spacebar keypress
-                        game_board = construct_game_board(STATE['game_piece_locs'])
-                        STATE['message'] = {
+                        game_board = construct_game_board(new_state['game_piece_locs'])
+                        new_state['message'] = {
                             'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
                                      game_board,
-                                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                             'expire_at': time.time() + 1
                         }
                         logging.debug('leaving it set to player x\'s turn!')
                 except ValueError:
                     logging.debug('caught ValueError, still player x\'s turn!')
-                    game_board = construct_game_board(STATE['game_piece_locs'])
-                    STATE['message'] = {
+                    game_board = construct_game_board(new_state['game_piece_locs'])
+                    new_state['message'] = {
                         'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
                                  game_board,
-                                 GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                                 GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                         'expire_at': time.time() + 1
                     }
         # o's turn
         else:
             if cursorMoved:
-                game_board = construct_game_board(STATE['game_piece_locs'])
-                STATE['message'] = {
+                game_board = construct_game_board(new_state['game_piece_locs'])
+                new_state['message'] = {
                     'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
                              game_board,
-                             GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                             GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                     'expire_at': time.time() + 1
                 }
             else:
                 try:
                     if c == ord(' '): # spacebar keypress
-                        if STATE['game_piece_locs'][index] == ' ':
-                            STATE['game_piece_locs'][index] = 'o'
-                            STATE['turn_num'] += 1
-                            game_board = construct_game_board(STATE['game_piece_locs'])
-                            STATE['message'] = {
+                        if curr_state['game_piece_locs'][index] == ' ':
+                            new_state['game_piece_locs'][index] = 'o'
+                            new_state['turn_num'] += 1
+                            game_board = construct_game_board(new_state['game_piece_locs'])
+                            new_state['message'] = {
                                 'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
                                          game_board,
-                                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                                 'expire_at': time.time() + 1
                             }
                             logging.debug('set it back to player x\'s turn!')
+                        else:
+                            new_state['game_piece_locs'][index] = 'o'
+                            new_state['turn_num'] += 1
+                            game_board = construct_game_board(new_state['game_piece_locs'])
+                            new_state['message'] = {
+                                'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
+                                         game_board,
+                                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
+                                'expire_at': time.time() + 1
+                            }                            
                     else: # not spacebar keypress
-                        game_board = construct_game_board(STATE['game_piece_locs'])
-                        STATE['message'] = {
+                        game_board = construct_game_board(new_state['game_piece_locs'])
+                        new_state['message'] = {
                             'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
                                      game_board,
-                                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                                     GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                             'expire_at': time.time() + 1
                         }
                         logging.debug('leaving it set to player o\'s turn!')
                 except ValueError:
                     logging.debug('caught ValueError, still player o\'s turn!')
-                    game_board = construct_game_board(STATE['game_piece_locs'])
-                    STATE['message'] = {
+                    game_board = construct_game_board(new_state['game_piece_locs'])
+                    new_state['message'] = {
                         'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
                                  game_board,
-                                 GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                                 GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                         'expire_at': time.time() + 1
                     }
+        return new_state
     else: # persist current screen state
-        if STATE['turn_num'] % 2 is not 0:
-            game_board = construct_game_board(STATE['game_piece_locs'])
-            STATE['message'] = {
+        if new_state['turn_num'] % 2 is not 0:
+            game_board = construct_game_board(new_state['game_piece_locs'])
+            new_state['message'] = {
                 'data': [PLAYER_TURN_MSG_TEMPLATE.format('x'),
                          game_board,
-                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                 'expire_at': time.time() + 1
             }
         else:
-            game_board = construct_game_board(STATE['game_piece_locs'])
-            STATE['message'] = {
+            game_board = construct_game_board(new_state['game_piece_locs'])
+            new_state['message'] = {
                 'data': [PLAYER_TURN_MSG_TEMPLATE.format('o'),
                          game_board,
-                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed())],
+                         GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(new_state))],
                 'expire_at': time.time() + 1
             }
+        return new_state
 
 def game_loop(stdscr):
-    global STATE
-    global GAME_START
+    state = init_state()
 
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
     # non-blocking on input
     stdscr.nodelay(1)
 
-    GAME_START = time.time()
     logging.debug('GAME START!')
 
-    while not is_game_over(stdscr):
+    while not is_game_over(stdscr, state):
         logging.debug('START GAME LOOP!')
         now = time.time()
-        draw(stdscr, now)
+        draw(stdscr, state, now)
         logging.debug('start napping...')
         curses.napms(100)
         logging.debug('done napping...')
         c = stdscr.getch()
         logging.debug('UPDATING STATE!')
-        update_state(stdscr, c)
+        state = update_state(stdscr, state, c)
         logging.debug('STATE UPDATED!')
-        logging.debug(STATE)
+        logging.debug(state)
         logging.debug('END GAME LOOP!')
 
-    STATE['cursor']['y'] = 0
-    STATE['cursor']['x'] = 0
-    draw(stdscr, now)
+    state['cursor']['y'] = 0
+    state['cursor']['x'] = 0
+    draw(stdscr, state, now)
     input('GAME OVER! CTRL + C TO QUIT!')
 
 if __name__ == '__main__':
