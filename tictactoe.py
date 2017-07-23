@@ -67,20 +67,24 @@ def find_lowest_empty_square(state, direction, preference):
     game_piece_array = state['game_piece_locs']
     if direction == 'up':
         for i in preference: # priority order for upwards moves
-            logging.debug('CHECKING LOCATION {}!'.format(i))
-            if game_piece_array[i] == ' ':
+            if game_piece_array[i] == ' ' and calculate_hovered_square(state) != i:
+                logging.debug('CURRENT HOVERED SQUARE IS: {}'.format(calculate_hovered_square(state)))
+                logging.debug('RETURNING EMPTY SQUARE INDEX: {}'.format(i))
                 return i
     elif direction == 'down':
         for i in preference:
-            if game_piece_array[i] == ' ':
+            if game_piece_array[i] == ' ' and calculate_hovered_square(state) != i:
+                logging.debug('RETURNING EMPTY SQUARE INDEX: {}'.format(i))
                 return i
     elif direction == 'left':
         for i in preference:
-            if game_piece_array[i] == ' ':
+            if game_piece_array[i] == ' ' and calculate_hovered_square(state) != i:
+                logging.debug('RETURNING EMPTY SQUARE INDEX: {}'.format(i))
                 return i
     elif direction == 'right':
         for i in preference:
-            if game_piece_array[i] == ' ':
+            if game_piece_array[i] == ' ' and calculate_hovered_square(state) != i:
+                logging.debug('RETURNING EMPTY SQUARE INDEX: {}'.format(i))
                 return i
     return calculate_hovered_square(state) # don't move the cursor
 
@@ -206,7 +210,7 @@ def update_state(stdscr, curr_state, c):
 
     # only enter the update routine if we received a keypress, 
     # otherwise extend current state
-    if c > 0: 
+    if c > 0:
         # determine if we only moved the cursor
         # TODO: this routine could be made better/less brittle by making the offsets relative to
         # a fixed position, i.e. top left coordinate of the gameboard
@@ -217,7 +221,7 @@ def update_state(stdscr, curr_state, c):
                     new_state['cursor']['x'] -= 4
                     if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
                         logging.debug('LEFT - square is not empty!')
-                        free_sq = find_lowest_empty_square(new_state, "left", [3, 6, 0, 4, 1, 7])
+                        free_sq = find_lowest_empty_square(curr_state, "left", [3, 6, 4, 0, 1, 7])
                         logging.debug('lowest free square is: {}'.format(free_sq))
                         coord = map_index_to_coordinate(free_sq)
                         logging.debug('coord is: {}'.format(coord))
@@ -230,7 +234,10 @@ def update_state(stdscr, curr_state, c):
                     new_state['cursor']['x'] += 4
                     if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
                         logging.debug('RIGHT - square is not empty!')
-                        free_sq = find_lowest_empty_square(new_state, "right", [5, 2, 8, 4, 7, 1])
+                        if calculate_hovered_square(curr_state) == 0:
+                            free_sq = find_lowest_empty_square(curr_state, "right", [1, 2, 4, 5, 8, 7])
+                        else: 
+                            free_sq = find_lowest_empty_square(curr_state, "right", [5, 8, 4, 2, 7, 1])
                         logging.debug('lowest free square is: {}'.format(free_sq))
                         coord = map_index_to_coordinate(free_sq)
                         logging.debug('coord is: {}'.format(coord))
@@ -241,9 +248,9 @@ def update_state(stdscr, curr_state, c):
             if chr(c) == 'w':
                 if curr_state['cursor']['y'] > 5:
                     new_state['cursor']['y'] -= 2
-                    if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
+                    if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ' :
                         logging.debug('UP - square is not empty!')
-                        free_sq = find_lowest_empty_square(new_state, "up", [1, 0, 2, 4, 3, 5])
+                        free_sq = find_lowest_empty_square(curr_state, "up", [4, 1, 0, 2, 3, 5])
                         logging.debug('lowest free square is: {}'.format(free_sq))
                         coord = map_index_to_coordinate(free_sq)
                         logging.debug('coord is: {}'.format(coord))
@@ -256,7 +263,7 @@ def update_state(stdscr, curr_state, c):
                     new_state['cursor']['y'] += 2
                     if new_state['game_piece_locs'][calculate_hovered_square(new_state)] != ' ':
                         logging.debug('DOWN - square is not empty!')
-                        free_sq = find_lowest_empty_square(new_state, "down", [7, 6, 8, 5, 4, 6])
+                        free_sq = find_lowest_empty_square(curr_state, "down", [4, 7, 6, 8, 5, 3])
                         logging.debug('lowest free square is: {}'.format(free_sq))
                         coord = map_index_to_coordinate(free_sq)
                         logging.debug('coord is: {}'.format(coord))
