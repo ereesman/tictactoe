@@ -6,16 +6,6 @@ from curses import wrapper as curses_wrapper
 
 """
 A game of tic tac toe
-
-TODO(eddie):
-* factor initial state creation into a method? 'init_state()'?
-* refactor update_state() to be a pure function, state = update_state(state)
-* colors
-* score(?)
-* start menu(?)
-* game over/player wins message
-* minmax AI (computer opponent)
-
 """
 
 GAME_PIECE_LOCS = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
@@ -24,10 +14,6 @@ PLAYER_TURN_MSG_TEMPLATE = '\n\n    Player {0}\'s turn!'
 GAME_CLOCK_TEMPLATE = '\n\n       +-------+\n       |{0}|\n       +-------+\n'
 
 def init_state():
-    global GAME_BOARD_TEMPLATE
-    global GAME_PIECE_LOCS
-    global PLAYER_TURN_MSG_TEMPLATE
-
     return {
     'turn_num': 1,
     'game_piece_locs': GAME_PIECE_LOCS,
@@ -107,7 +93,7 @@ def is_tic_tac_toe(player, state):
 def is_game_over(stdscr, state):
     x_wins_msg = '\n\n    Player x wins!'
     o_wins_msg = '\n\n    Player o wins!'
-    draw_msg = '\n\n    Draw!'
+    draw_msg = '\n\n        Draw!'
 
     if is_tic_tac_toe('x', state):
         game_board = construct_game_board(state['game_piece_locs'])
@@ -162,8 +148,6 @@ def draw(stdscr, state,  now):
     logging.debug('done drawing...')
 
 def update_state(stdscr, curr_state, c):
-    global PLAYER_TURN_MSG_TEMPLATE
-
     new_state = {
     'turn_num': curr_state['turn_num'],
     'game_piece_locs': curr_state['game_piece_locs'],
@@ -209,7 +193,7 @@ def update_state(stdscr, curr_state, c):
         except ValueError:
             pass
 
-        index = calculate_hovered_square(curr_state)
+        index = calculate_hovered_square(new_state)
         logging.debug('hovered square/index: {0}'.format(index))
 
         # x's turn
@@ -337,14 +321,32 @@ def update_state(stdscr, curr_state, c):
         return new_state
 
 def game_loop(stdscr):
-    state = init_state()
-
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-
-    # non-blocking on input
     stdscr.nodelay(1)
 
-    logging.debug('GAME START!')
+    # draw banner
+    b = open('banner.txt', 'r')
+    banner = b.read()
+    curses.curs_set(0)
+    game_is_started = False
+    while not game_is_started:
+        try:
+            stdscr.addstr(banner, curses.color_pair(1))
+            stdscr.refresh()
+            curses.napms(100)
+        except Exception:
+            stdscr.erase()
+        c = stdscr.getch()
+        if c == ord(' '):
+            game_is_started = True
+        else:
+            pass
+
+    # game start
+    state = init_state()
+    # non-blocking on input
+
+    curses.curs_set(1)
 
     while not is_game_over(stdscr, state):
         logging.debug('START GAME LOOP!')
