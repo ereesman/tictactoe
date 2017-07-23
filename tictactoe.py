@@ -322,6 +322,7 @@ def update_state(stdscr, curr_state, c):
 
 def game_loop(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    # non-blocking on input
     stdscr.nodelay(1)
 
     # draw banner
@@ -344,7 +345,6 @@ def game_loop(stdscr):
 
     # game start
     state = init_state()
-    # non-blocking on input
 
     curses.curs_set(1)
 
