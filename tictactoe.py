@@ -286,7 +286,7 @@ def update_state(stdscr, curr_state, c):
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'x'
                             new_state['turn_num'] += 1
-                            free_sq = find_lowest_empty_square(new_state, "right", [1, 5, 7, 3, 0, 2, 6, 8])
+                            free_sq = find_lowest_empty_square(new_state, "right", [0, 1, 2, 3, 4, 5, 6, 7, 8])
                             logging.debug('lowest free square is: {}'.format(free_sq))
                             coord = map_index_to_coordinate(free_sq)
                             logging.debug('coord is: {}'.format(coord))
@@ -344,7 +344,7 @@ def update_state(stdscr, curr_state, c):
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'o'
                             new_state['turn_num'] += 1
-                            free_sq = find_lowest_empty_square(new_state, "right", [1, 5, 7, 3, 0, 2, 6, 8])
+                            free_sq = find_lowest_empty_square(new_state, "right", [0, 1, 2, 3, 4, 5, 6, 7, 8])
                             logging.debug('lowest free square is: {}'.format(free_sq))
                             coord = map_index_to_coordinate(free_sq)
                             logging.debug('coord is: {}'.format(coord))
