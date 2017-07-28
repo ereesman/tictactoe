@@ -8,12 +8,11 @@
        |__/   |__/ \_______/   |__/ \_______/ \_______/   |__/ \______/  \_______/
 
 
-                           W      A      S      D
-                          (up) (left) (down) (right)
+                       Controls: W A S D or arrow keys!
 
                       SPACEBAR to place your game piece!
 
-                           -PRESS SPACEBAR TO START-
+                           PRESS ANY KEY TO START!
 
 
 
