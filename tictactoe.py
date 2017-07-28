@@ -525,7 +525,7 @@ def game_loop(stdscr):
         except Exception:
             stdscr.erase()
         c = stdscr.getch()
-        if c == ord(' '):
+        if c > 0:
             game_is_started = True
         else:
             stdscr.erase()
