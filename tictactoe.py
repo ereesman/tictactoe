@@ -101,6 +101,29 @@ def map_index_to_coordinate(index):
         return (15, 7)
 
 
+def find_all_empty_squares(state):
+    """
+    returns a list of indices of all empty squares
+    """
+    empty_squares = []
+    game_piece_array = state['game_piece_locs']
+    for i in range(0, len(game_piece_array) - 1):
+        if game_piece_array[i] == ' ':
+            empty_squares.append(i)
+    logging.debug("FOUND ALL EMPTY SQUARES: {}".format(empty_squares))
+    return empty_squares
+
+
+def find_nearest_empty_square(state):
+    """
+    returns an index of the nearest empty square
+    """
+    idx = calculate_hovered_square(state)
+    empties = find_all_empty_squares(state)
+    closest = min(empties, key=lambda x: abs(x - idx))
+    return closest
+
+
 def find_lowest_empty_square(state, direction, preference):
     """
     given state return the lowest empty square by index in target direction
@@ -387,9 +410,7 @@ def update_state(stdscr, curr_state, c):
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'x'
                             new_state['turn_num'] += 1
-                            free_sq = find_lowest_empty_square(
-                                new_state, "right",
-                                [0, 1, 2, 3, 4, 5, 6, 7, 8])
+                            free_sq = find_nearest_empty_square(new_state)
                             coord = map_index_to_coordinate(free_sq)
                             new_state['cursor']['x'] = coord[0]
                             new_state['cursor']['y'] = coord[1]
@@ -464,9 +485,7 @@ def update_state(stdscr, curr_state, c):
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'o'
                             new_state['turn_num'] += 1
-                            free_sq = find_lowest_empty_square(
-                                new_state, "right",
-                                [0, 1, 2, 3, 4, 5, 6, 7, 8])
+                            free_sq = find_nearest_empty_square(new_state)
                             coord = map_index_to_coordinate(free_sq)
                             new_state['cursor']['x'] = coord[0]
                             new_state['cursor']['y'] = coord[1]
