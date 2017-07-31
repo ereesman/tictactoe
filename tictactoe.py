@@ -3,9 +3,12 @@ import datetime
 import logging
 import curses
 from curses import wrapper as curses_wrapper
+
+
 """
 A game of tic tac toe
 """
+
 
 GAME_PIECE_LOCS = [' '] * 9
 
