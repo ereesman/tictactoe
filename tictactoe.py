@@ -5,9 +5,9 @@ import curses
 from curses import wrapper as curses_wrapper
 
 
-"""
+'''
 A game of tic tac toe
-"""
+'''
 
 
 GAME_PIECE_LOCS = [' '] * 9
@@ -80,9 +80,9 @@ def calculate_hovered_square(state):
 
 
 def map_index_to_coordinate(index):
-    """
+    '''
     TODO(eddie): this could be better ala non-hardcoded coords
-    """
+    '''
 
     if index == 0:
         return (7, 3)
@@ -105,9 +105,9 @@ def map_index_to_coordinate(index):
 
 
 def find_all_empty_squares(state):
-    """
+    '''
     returns a list of indices of all empty squares
-    """
+    '''
     empty_squares = []
     game_piece_array = state['game_piece_locs']
     for i in range(0, len(game_piece_array)):
@@ -117,9 +117,9 @@ def find_all_empty_squares(state):
 
 
 def find_nearest_empty_square(state):
-    """
+    '''
     returns an index of the nearest empty square
-    """
+    '''
     idx = calculate_hovered_square(state)
     empties = find_all_empty_squares(state)
     closest = min(empties, key=lambda x: abs(x - idx))
@@ -127,9 +127,9 @@ def find_nearest_empty_square(state):
 
 
 def find_lowest_empty_square(state, direction, preference):
-    """
+    '''
     given state return the lowest empty square by index in target direction
-    """
+    '''
     game_piece_array = state['game_piece_locs']
     if direction == 'up':
         for i in preference:  # priority order for upwards moves
