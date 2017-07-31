@@ -113,7 +113,6 @@ def find_all_empty_squares(state):
     for i in range(0, len(game_piece_array) - 1):
         if game_piece_array[i] == ' ':
             empty_squares.append(i)
-    logging.debug("FOUND ALL EMPTY SQUARES: {}".format(empty_squares))
     return empty_squares
 
 
