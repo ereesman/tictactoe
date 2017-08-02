@@ -1,4 +1,5 @@
 import time
+import math
 import datetime
 import logging
 import curses
@@ -56,52 +57,34 @@ def calculate_time_elapsed(state):
 
 def calculate_hovered_square(state):
 
-    x = state['cursor']['x']
-    y = state['cursor']['y']
+    xedge = 7
+    yedge = 3
 
-    if x == 7 and y == 3:
-        return 0
-    if x == 11 and y == 3:
-        return 1
-    if x == 15 and y == 3:
-        return 2
-    if x == 7 and y == 5:
-        return 3
-    if x == 11 and y == 5:
-        return 4
-    if x == 15 and y == 5:
-        return 5
-    if x == 7 and y == 7:
-        return 6
-    if x == 11 and y == 7:
-        return 7
-    if x == 15 and y == 7:
-        return 8
+    xscreen = state['cursor']['x']
+    yscreen = state['cursor']['y']
+
+    # map from screen (curses) coordinate to real coordinate first
+    xreal = (xscreen - xedge) / 4
+    yreal = (yscreen - yedge) / 2
+
+    # calculate index from real coordinates
+    return xreal + (3 * yreal)
 
 
 def map_index_to_coordinate(index):
-    '''
-    TODO(eddie): this could be better ala non-hardcoded coords
-    '''
 
-    if index == 0:
-        return (7, 3)
-    if index == 1:
-        return (11, 3)
-    if index == 2:
-        return (15, 3)
-    if index == 3:
-        return (7, 5)
-    if index == 4:
-        return (11, 5)
-    if index == 5:
-        return (15, 5)
-    if index == 6:
-        return (7, 7)
-    if index == 7:
-        return (11, 7)
-    if index == 8:
-        return (15, 7)
+    xedge = 7
+    yedge = 3
+
+    # map from index to real coordinates first
+    xreal = int(math.ceil(index % 3))
+    yreal = index // 3
+
+    # calculate screen (curses) coordinates from real coordinates
+    xscreen = (xreal * 4) + xedge
+    yscreen = (yreal * 2) + yedge
+
+    return (xscreen, yscreen)
 
 
 def find_all_empty_squares(state):
