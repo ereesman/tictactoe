@@ -55,7 +55,7 @@ def calculate_time_elapsed(state):
         datetime.timedelta(seconds=round(time.time() - state['game_start'])))
 
 
-def calculate_hovered_square(state):
+def map_coordinate_to_index(state):
 
     xedge = 7
     yedge = 3
@@ -103,7 +103,7 @@ def find_nearest_empty_square(state):
     '''
     returns an index of the nearest empty square
     '''
-    idx = calculate_hovered_square(state)
+    idx = map_coordinate_to_index(state)
     empties = find_all_empty_squares(state)
     closest = min(empties, key=lambda x: abs(x - idx))
     return closest
@@ -117,24 +117,24 @@ def find_lowest_empty_square(state, direction, preference):
     if direction == 'up':
         for i in preference:  # priority order for upwards moves
             if (game_piece_array[i] == ' '
-                    and calculate_hovered_square(state) != i):
+                    and map_coordinate_to_index(state) != i):
                 return i
     elif direction == 'down':
         for i in preference:
             if (game_piece_array[i] == ' '
-                    and calculate_hovered_square(state) != i):
+                    and map_coordinate_to_index(state) != i):
                 return i
     elif direction == 'left':
         for i in preference:
             if (game_piece_array[i] == ' '
-                    and calculate_hovered_square(state) != i):
+                    and map_coordinate_to_index(state) != i):
                 return i
     elif direction == 'right':
         for i in preference:
             if (game_piece_array[i] == ' '
-                    and calculate_hovered_square(state) != i):
+                    and map_coordinate_to_index(state) != i):
                 return i
-    return calculate_hovered_square(state)  # don't move the cursor
+    return map_coordinate_to_index(state)  # don't move the cursor
 
 
 def construct_game_board(game_piece_locs):
@@ -276,7 +276,7 @@ def update_state(stdscr, curr_state, c):
             if c == curses.KEY_LEFT:
                 if curr_state['cursor']['x'] > 7:
                     new_state['cursor']['x'] -= 4
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
                         free_sq = find_lowest_empty_square(
                             curr_state, "left", [3, 6, 4, 0, 1, 7])
@@ -287,9 +287,9 @@ def update_state(stdscr, curr_state, c):
             elif c == curses.KEY_RIGHT:
                 if curr_state['cursor']['x'] < 12:
                     new_state['cursor']['x'] += 4
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
-                        if calculate_hovered_square(curr_state) == 0:
+                        if map_coordinate_to_index(curr_state) == 0:
                             free_sq = find_lowest_empty_square(
                                 curr_state, "right", [1, 2, 4, 5, 8, 7])
                         else:
@@ -302,7 +302,7 @@ def update_state(stdscr, curr_state, c):
             elif c == curses.KEY_UP:
                 if curr_state['cursor']['y'] > 3:
                     new_state['cursor']['y'] -= 2
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
                         free_sq = find_lowest_empty_square(
                             curr_state, "up", [4, 1, 0, 2, 3, 5])
@@ -313,7 +313,7 @@ def update_state(stdscr, curr_state, c):
             elif c == curses.KEY_DOWN:
                 if curr_state['cursor']['y'] < 7:
                     new_state['cursor']['y'] += 2
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
                         free_sq = find_lowest_empty_square(
                             curr_state, "down", [4, 7, 6, 8, 5, 3])
@@ -326,7 +326,7 @@ def update_state(stdscr, curr_state, c):
             elif chr(c) == 'a':
                 if curr_state['cursor']['x'] > 7:
                     new_state['cursor']['x'] -= 4
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
                         free_sq = find_lowest_empty_square(
                             curr_state, "left", [3, 6, 4, 0, 1, 7])
@@ -337,9 +337,9 @@ def update_state(stdscr, curr_state, c):
             elif chr(c) == 'd':
                 if curr_state['cursor']['x'] < 12:
                     new_state['cursor']['x'] += 4
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
-                        if calculate_hovered_square(curr_state) == 0:
+                        if map_coordinate_to_index(curr_state) == 0:
                             free_sq = find_lowest_empty_square(
                                 curr_state, "right", [1, 2, 4, 5, 8, 7])
                         else:
@@ -352,7 +352,7 @@ def update_state(stdscr, curr_state, c):
             elif chr(c) == 'w':
                 if curr_state['cursor']['y'] > 3:
                     new_state['cursor']['y'] -= 2
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
                         free_sq = find_lowest_empty_square(
                             curr_state, "up", [4, 1, 0, 2, 3, 5])
@@ -363,7 +363,7 @@ def update_state(stdscr, curr_state, c):
             elif chr(c) == 's':
                 if curr_state['cursor']['y'] < 7:
                     new_state['cursor']['y'] += 2
-                    if new_state['game_piece_locs'][calculate_hovered_square(
+                    if new_state['game_piece_locs'][map_coordinate_to_index(
                             new_state)] != ' ':
                         free_sq = find_lowest_empty_square(
                             curr_state, "down", [4, 7, 6, 8, 5, 3])
@@ -374,7 +374,7 @@ def update_state(stdscr, curr_state, c):
         except ValueError:
             pass
 
-        index = calculate_hovered_square(new_state)
+        index = map_coordinate_to_index(new_state)
 
         # x's turn
         if curr_state['turn_num'] % 2 is not 0:
