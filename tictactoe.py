@@ -246,7 +246,7 @@ def draw(stdscr, state, now):
     stdscr.refresh()
 
 
-def update_state(stdscr, curr_state, c):
+def update_state(stdscr, curr_state, key):
 
     new_state = {
         'turn_num': curr_state['turn_num'],
@@ -264,7 +264,7 @@ def update_state(stdscr, curr_state, c):
 
     # only enter the update routine if we received a keypress,
     # otherwise extend current state
-    if c > 0:
+    if key > 0:
         # determine if we only moved the cursor
         '''
         TODO(eddie): this routine could be made better/less brittle
@@ -273,7 +273,7 @@ def update_state(stdscr, curr_state, c):
         '''
         cursorMoved = False
         try:
-            if c == curses.KEY_LEFT:
+            if key == curses.KEY_LEFT:
                 if curr_state['cursor']['x'] > 7:
                     new_state['cursor']['x'] -= 4
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -284,7 +284,7 @@ def update_state(stdscr, curr_state, c):
                         new_state['cursor']['x'] = coord[0]
                         new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
-            elif c == curses.KEY_RIGHT:
+            elif key == curses.KEY_RIGHT:
                 if curr_state['cursor']['x'] < 12:
                     new_state['cursor']['x'] += 4
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -299,7 +299,7 @@ def update_state(stdscr, curr_state, c):
                         new_state['cursor']['x'] = coord[0]
                         new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
-            elif c == curses.KEY_UP:
+            elif key == curses.KEY_UP:
                 if curr_state['cursor']['y'] > 3:
                     new_state['cursor']['y'] -= 2
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -310,7 +310,7 @@ def update_state(stdscr, curr_state, c):
                         new_state['cursor']['x'] = coord[0]
                         new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
-            elif c == curses.KEY_DOWN:
+            elif key == curses.KEY_DOWN:
                 if curr_state['cursor']['y'] < 7:
                     new_state['cursor']['y'] += 2
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -323,7 +323,7 @@ def update_state(stdscr, curr_state, c):
                     cursorMoved = True
             # TODO(eddie): figure out some way to collapse arrow keys
             # and wasd controls
-            elif chr(c) == 'a':
+            elif chr(key) == 'a':
                 if curr_state['cursor']['x'] > 7:
                     new_state['cursor']['x'] -= 4
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -334,7 +334,7 @@ def update_state(stdscr, curr_state, c):
                         new_state['cursor']['x'] = coord[0]
                         new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
-            elif chr(c) == 'd':
+            elif chr(key) == 'd':
                 if curr_state['cursor']['x'] < 12:
                     new_state['cursor']['x'] += 4
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -349,7 +349,7 @@ def update_state(stdscr, curr_state, c):
                         new_state['cursor']['x'] = coord[0]
                         new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
-            elif chr(c) == 'w':
+            elif chr(key) == 'w':
                 if curr_state['cursor']['y'] > 3:
                     new_state['cursor']['y'] -= 2
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -360,7 +360,7 @@ def update_state(stdscr, curr_state, c):
                         new_state['cursor']['x'] = coord[0]
                         new_state['cursor']['y'] = coord[1]
                     cursorMoved = True
-            elif chr(c) == 's':
+            elif chr(key) == 's':
                 if curr_state['cursor']['y'] < 7:
                     new_state['cursor']['y'] += 2
                     if new_state['game_piece_locs'][map_coordinate_to_index(
@@ -391,7 +391,7 @@ def update_state(stdscr, curr_state, c):
                 }
             else:
                 try:
-                    if c == ord(' '):  # spacebar keypress
+                    if key == ord(' '):  # spacebar keypress
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'x'
                             new_state['turn_num'] += 1
@@ -466,7 +466,7 @@ def update_state(stdscr, curr_state, c):
                 }
             else:
                 try:
-                    if c == ord(' '):  # spacebar keypress
+                    if key == ord(' '):  # spacebar keypress
                         if curr_state['game_piece_locs'][index] == ' ':
                             new_state['game_piece_locs'][index] = 'o'
                             new_state['turn_num'] += 1
@@ -588,8 +588,8 @@ def game_loop(stdscr):
         now = time.time()
         draw(stdscr, state, now)
         curses.napms(100)
-        c = stdscr.getch()
-        state = update_state(stdscr, state, c)
+        key = stdscr.getch()
+        state = update_state(stdscr, state, key)
 
     state['cursor']['y'] = 0
     state['cursor']['x'] = 0
