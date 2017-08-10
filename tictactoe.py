@@ -11,7 +11,7 @@ A game of tic tac toe
 '''
 
 
-GAME_PIECE_LOCS = [' '] * 9
+BOARD_SQUARES = [' '] * 9
 
 PLAYER_TURN_MSG_TEMPLATE = ('\n' + '    ' + 'Player {0}\'s turn!')
 
@@ -24,48 +24,47 @@ GAME_BOARD_TEMPLATE = (
 GAME_CLOCK_TEMPLATE = ('\n' + '       ' + '+-------+' + '\n' + '       ' +
                        '|{0}|' + '\n' + '       ' + '+-------+' + '\n')
 
+GAME_START = time.time()
+
+DEFAULT_MESSAGE_TTL = 1
+
+X_EDGE = 7
+Y_EDGE = 3
+
+X_STEP = 4
+Y_STEP = 2
+
 
 def init_state():
+    '''
+    returns the starting game state
+    '''
 
     return {
         'turn_num': 1,
-        'game_piece_locs': GAME_PIECE_LOCS,
-        'message': {
-            'data': [
-                PLAYER_TURN_MSG_TEMPLATE.format('x'),
-                GAME_BOARD_TEMPLATE.format(
-                    GAME_PIECE_LOCS[0], GAME_PIECE_LOCS[1], GAME_PIECE_LOCS[2],
-                    GAME_PIECE_LOCS[3], GAME_PIECE_LOCS[4], GAME_PIECE_LOCS[5],
-                    GAME_PIECE_LOCS[6], GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8])
-            ],
-            'expire_at':
-            time.time() + 1
-        },
+        'board_squares': BOARD_SQUARES,
         'cursor': {
-            'x': 7,
-            'y': 3
+            'x': X_EDGE,
+            'y': Y_EDGE
         },
-        'game_start': time.time()
+        'message_expire_at': time.time() + DEFAULT_MESSAGE_TTL
     }
 
 
 def calculate_time_elapsed(state):
 
     return str(
-        datetime.timedelta(seconds=round(time.time() - state['game_start'])))
+        datetime.timedelta(seconds=round(time.time() - GAME_START)))
 
 
 def map_coordinate_to_index(state):
-
-    xedge = 7
-    yedge = 3
 
     xscreen = state['cursor']['x']
     yscreen = state['cursor']['y']
 
     # map from screen (curses) coordinate to real coordinate first
-    xreal = (xscreen - xedge) / 4
-    yreal = (yscreen - yedge) / 2
+    xreal = (xscreen - X_EDGE) / X_STEP
+    yreal = (yscreen - Y_EDGE) / Y_STEP
 
     # calculate index from real coordinates
     return xreal + (3 * yreal)
@@ -73,16 +72,13 @@ def map_coordinate_to_index(state):
 
 def map_index_to_coordinate(index):
 
-    xedge = 7
-    yedge = 3
-
     # map from index to real coordinates first
     xreal = int(math.ceil(index % 3))
     yreal = index // 3
 
     # calculate screen (curses) coordinates from real coordinates
-    xscreen = (xreal * 4) + xedge
-    yscreen = (yreal * 2) + yedge
+    xscreen = (xreal * X_STEP) + X_EDGE
+    yscreen = (yreal * Y_STEP) + Y_EDGE
 
     return (xscreen, yscreen)
 
@@ -137,12 +133,23 @@ def find_lowest_empty_square(state, direction, preference):
     return map_coordinate_to_index(state)  # don't move the cursor
 
 
-def construct_game_board(game_piece_locs):
+# def construct_game_board(game_piece_locs):
 
-    return GAME_BOARD_TEMPLATE.format(
-        GAME_PIECE_LOCS[0], GAME_PIECE_LOCS[1], GAME_PIECE_LOCS[2],
-        GAME_PIECE_LOCS[3], GAME_PIECE_LOCS[4], GAME_PIECE_LOCS[5],
-        GAME_PIECE_LOCS[6], GAME_PIECE_LOCS[7], GAME_PIECE_LOCS[8])
+#     return GAME_BOARD_TEMPLATE.format(
+#         GAME_PIECE_LOCATIONS[0],
+#         GAME_PIECE_LOCATIONS[1],
+#         GAME_PIECE_LOCATIONS[2],
+#         GAME_PIECE_LOCATIONS[3],
+#         GAME_PIECE_LOCATIONS[4],
+#         GAME_PIECE_LOCATIONS[5],
+#         GAME_PIECE_LOCATIONS[6],
+#         GAME_PIECE_LOCATIONS[7],
+#         GAME_PIECE_LOCATIONS[8])
+
+
+# def construct_game_timer(state):
+
+#     return GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))
 
 
 def is_tic_tac_toe(player, state):
@@ -197,7 +204,7 @@ def is_game_over(stdscr, state):
         state['message'] = {
             'data': [
                 x_wins_msg, game_board,
-                GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))
+                
             ],
             'expire_at':
             time.time() + 1
@@ -208,7 +215,7 @@ def is_game_over(stdscr, state):
         state['message'] = {
             'data': [
                 o_wins_msg, game_board,
-                GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))
+                construct_game_timer(state)
             ],
             'expire_at':
             time.time() + 1
@@ -219,7 +226,7 @@ def is_game_over(stdscr, state):
         state['message'] = {
             'data': [
                 draw_msg, game_board,
-                GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))
+                construct_game_timer(state)
             ],
             'expire_at':
             time.time() + 1
@@ -231,13 +238,21 @@ def is_game_over(stdscr, state):
 
 def draw(stdscr, state, now):
 
-    stdscr.erase()
-    if now < state['message']['expire_at']:
-        for msg in state['message']['data']:
+    if not is_game_over(stdscr, state):
+        stdscr.erase()
+        if now < state['message']['expire_at']:
+            for msg in state['message']['data']:
+                try:
+                    stdscr.addstr(msg, curses.color_pair(1))
+                except Exception:
+                    stdscr.erase()
+            # draw timer
             try:
-                stdscr.addstr(msg, curses.color_pair(1))
+                stdscr.addstr(construct_game_timer(state),
+                              curses.color_pair(1))
             except Exception:
                 stdscr.erase()
+
     # move the cursor
     try:
         stdscr.addstr(state['cursor']['y'], state['cursor']['x'], '')
@@ -383,8 +398,7 @@ def update_state(stdscr, curr_state, key):
                 new_state['message'] = {
                     'data': [
                         PLAYER_TURN_MSG_TEMPLATE.format('x'), game_board,
-                        GAME_CLOCK_TEMPLATE.format(
-                            calculate_time_elapsed(new_state))
+                        construct_game_timer(new_state)
                     ],
                     'expire_at':
                     time.time() + 1
@@ -405,8 +419,7 @@ def update_state(stdscr, curr_state, key):
                                 'data': [
                                     PLAYER_TURN_MSG_TEMPLATE.format('o'),
                                     game_board,
-                                    GAME_CLOCK_TEMPLATE.format(
-                                        calculate_time_elapsed(new_state))
+                                    construct_game_timer(new_state)
                                 ],
                                 'expire_at':
                                 time.time() + 1
@@ -420,8 +433,7 @@ def update_state(stdscr, curr_state, key):
                                 'data': [
                                     PLAYER_TURN_MSG_TEMPLATE.format('o'),
                                     game_board,
-                                    GAME_CLOCK_TEMPLATE.format(
-                                        calculate_time_elapsed(new_state))
+                                    construct_game_timer(new_state)
                                 ],
                                 'expire_at':
                                 time.time() + 1
@@ -433,8 +445,7 @@ def update_state(stdscr, curr_state, key):
                             'data': [
                                 PLAYER_TURN_MSG_TEMPLATE.format('x'),
                                 game_board,
-                                GAME_CLOCK_TEMPLATE.format(
-                                    calculate_time_elapsed(new_state))
+                                construct_game_timer(new_state)
                             ],
                             'expire_at':
                             time.time() + 1
@@ -445,8 +456,7 @@ def update_state(stdscr, curr_state, key):
                     new_state['message'] = {
                         'data': [
                             PLAYER_TURN_MSG_TEMPLATE.format('x'), game_board,
-                            GAME_CLOCK_TEMPLATE.format(
-                                calculate_time_elapsed(new_state))
+                            construct_game_timer(new_state)
                         ],
                         'expire_at':
                         time.time() + 1
@@ -458,8 +468,7 @@ def update_state(stdscr, curr_state, key):
                 new_state['message'] = {
                     'data': [
                         PLAYER_TURN_MSG_TEMPLATE.format('o'), game_board,
-                        GAME_CLOCK_TEMPLATE.format(
-                            calculate_time_elapsed(new_state))
+                        construct_game_timer(new_state)
                     ],
                     'expire_at':
                     time.time() + 1
@@ -480,8 +489,7 @@ def update_state(stdscr, curr_state, key):
                                 'data': [
                                     PLAYER_TURN_MSG_TEMPLATE.format('x'),
                                     game_board,
-                                    GAME_CLOCK_TEMPLATE.format(
-                                        calculate_time_elapsed(new_state))
+                                    construct_game_timer(new_state)
                                 ],
                                 'expire_at':
                                 time.time() + 1
@@ -495,8 +503,7 @@ def update_state(stdscr, curr_state, key):
                                 'data': [
                                     PLAYER_TURN_MSG_TEMPLATE.format('x'),
                                     game_board,
-                                    GAME_CLOCK_TEMPLATE.format(
-                                        calculate_time_elapsed(new_state))
+                                    construct_game_timer(new_state)
                                 ],
                                 'expire_at':
                                 time.time() + 1
@@ -594,7 +601,10 @@ def game_loop(stdscr):
     state['cursor']['y'] = 0
     state['cursor']['x'] = 0
     draw(stdscr, state, now)
-    input('GAME OVER! CTRL + C TO QUIT!')
+    try:
+        input('GAME OVER! CTRL + C TO QUIT!')
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':
