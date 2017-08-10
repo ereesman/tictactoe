@@ -1,22 +1,21 @@
 import sys
 import time
+import pytest
 
 sys.path.append('../')
 from tictactoe import is_tic_tac_toe
 
 
-def test_positive_is_tic_tac_toe():
+@pytest.mark.parametrize("board_squares,player",
+                         [(['x', 'x', 'x'] + [' '] * 6,
+                           'x'),
+                          ([' '] * 3 + ['o', 'o', 'o'] + [' '] * 3,
+                           'o')])
+def test_positive_is_tic_tac_toe(board_squares, player):
 
     x_edge = 7
     y_edge = 3
     default_message_ttl = 1
-    player = 'x'
-
-    board_squares = [' '] * 9
-
-    board_squares[0] = 'x'
-    board_squares[1] = 'x'
-    board_squares[2] = 'x'
 
     test_state = {
         'turn_num': 1,

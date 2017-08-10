@@ -4,33 +4,34 @@ import datetime
 import logging
 import curses
 from curses import wrapper as curses_wrapper
-
-
 '''
 A game of tic tac toe
 '''
 
-
 BOARD_SQUARES = [' '] * 9
 
-PLAYER_TURN_MSG_TEMPLATE = ('\n' + '    ' + 'Player {0}\'s turn!')
+# PLAYER_TURN_MSG_TEMPLATE = ('\n' + '    ' + 'Player {0}\'s turn!')
 
-GAME_BOARD_TEMPLATE = (
-    '\n' + '     ' + '+-----------+' + '\n' + '     ' + '| {0} | {1} | {2} |' +
-    '\n' + '     ' + '|-----------|' + '\n' + '     ' + '| {3} | {4} | {5} |' +
-    '\n' + '     ' + '|-----------|' + '\n' + '     ' + '| {6} | {7} | {8} |' +
-    '\n' + '     ' + '+-----------+')
+# GAME_BOARD_TEMPLATE = (
+#   '\n' + '     ' + '+-----------+' + '\n' + '     ' + '| {0} | {1} | {2} |' +
+#   '\n' + '     ' + '|-----------|' + '\n' + '     ' + '| {3} | {4} | {5} |' +
+#   '\n' + '     ' + '|-----------|' + '\n' + '     ' + '| {6} | {7} | {8} |' +
+#   '\n' + '     ' + '+-----------+')
 
-GAME_CLOCK_TEMPLATE = ('\n' + '       ' + '+-------+' + '\n' + '       ' +
-                       '|{0}|' + '\n' + '       ' + '+-------+' + '\n')
+# GAME_CLOCK_TEMPLATE = ('\n' + '       ' + '+-------+' + '\n' + '       ' +
+#                        '|{0}|' + '\n' + '       ' + '+-------+' + '\n')
 
 GAME_START = time.time()
 
-DEFAULT_MESSAGE_TTL = 1
+# default time to live of a game state in seconds
+DEFAULT_STATE_TTL = 1
 
+# x and y delta of top left curses/screen
+# position and top left board square
 X_EDGE = 7
 Y_EDGE = 3
 
+# x and y delta of board squares
 X_STEP = 4
 Y_STEP = 2
 
@@ -47,14 +48,13 @@ def init_state():
             'x': X_EDGE,
             'y': Y_EDGE
         },
-        'message_expire_at': time.time() + DEFAULT_MESSAGE_TTL
+        'message_expire_at': time.time() + DEFAULT_STATE_TTL
     }
 
 
 def calculate_time_elapsed(state):
 
-    return str(
-        datetime.timedelta(seconds=round(time.time() - GAME_START)))
+    return str(datetime.timedelta(seconds=round(time.time() - GAME_START)))
 
 
 def map_coordinate_to_index(state):
@@ -146,7 +146,6 @@ def find_lowest_empty_square(state, direction, preference):
 #         GAME_PIECE_LOCATIONS[7],
 #         GAME_PIECE_LOCATIONS[8])
 
-
 # def construct_game_timer(state):
 
 #     return GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))
@@ -154,43 +153,15 @@ def find_lowest_empty_square(state, direction, preference):
 
 def is_tic_tac_toe(player, state):
 
-    # left to right check
-    if (state['game_piece_locs'][0] == player
-            and state['game_piece_locs'][1] == player
-            and state['game_piece_locs'][2] == player):
-        return True
-    elif (state['game_piece_locs'][3] == player
-          and state['game_piece_locs'][4] == player
-          and state['game_piece_locs'][5] == player):
-        return True
-    elif (state['game_piece_locs'][6] == player
-          and state['game_piece_locs'][7] == player
-          and state['game_piece_locs'][8] == player):
-        return True
-    # top to bottom check
-    if (state['game_piece_locs'][0] == player
-            and state['game_piece_locs'][3] == player
-            and state['game_piece_locs'][6] == player):
-        return True
-    elif (state['game_piece_locs'][1] == player
-          and state['game_piece_locs'][4] == player
-          and state['game_piece_locs'][7] == player):
-        return True
-    elif (state['game_piece_locs'][2] == player
-          and state['game_piece_locs'][5] == player
-          and state['game_piece_locs'][8] == player):
-        return True
-    # diagonal check
-    if (state['game_piece_locs'][0] == player
-            and state['game_piece_locs'][4] == player
-            and state['game_piece_locs'][8] == player):
-        return True
-    elif (state['game_piece_locs'][2] == player
-          and state['game_piece_locs'][4] == player
-          and state['game_piece_locs'][6] == player):
-        return True
-    else:
-        return False
+    winning_states = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7],
+                      [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+
+    for s in winning_states:
+        if (state['board_squares'][s[0]] == player
+                and state['board_squares'][s[1]] == player
+                and state['board_squares'][s[2]] == player):
+            return True
+    return False
 
 
 def is_game_over(stdscr, state):
@@ -203,33 +174,26 @@ def is_game_over(stdscr, state):
         game_board = construct_game_board(state['game_piece_locs'])
         state['message'] = {
             'data': [
-                x_wins_msg, game_board,
-                
+                x_wins_msg,
+                game_board,
             ],
-            'expire_at':
-            time.time() + 1
+            'expire_at': time.time() + 1
         }
         return True
     elif is_tic_tac_toe('o', state):
         game_board = construct_game_board(state['game_piece_locs'])
         state['message'] = {
-            'data': [
-                o_wins_msg, game_board,
-                construct_game_timer(state)
-            ],
-            'expire_at':
-            time.time() + 1
+            'data': [o_wins_msg, game_board,
+                     construct_game_timer(state)],
+            'expire_at': time.time() + 1
         }
         return True
     elif state['turn_num'] == 10:
         game_board = construct_game_board(state['game_piece_locs'])
         state['message'] = {
-            'data': [
-                draw_msg, game_board,
-                construct_game_timer(state)
-            ],
-            'expire_at':
-            time.time() + 1
+            'data': [draw_msg, game_board,
+                     construct_game_timer(state)],
+            'expire_at': time.time() + 1
         }
         return True
     else:
@@ -248,8 +212,8 @@ def draw(stdscr, state, now):
                     stdscr.erase()
             # draw timer
             try:
-                stdscr.addstr(construct_game_timer(state),
-                              curses.color_pair(1))
+                stdscr.addstr(
+                    construct_game_timer(state), curses.color_pair(1))
             except Exception:
                 stdscr.erase()
 
