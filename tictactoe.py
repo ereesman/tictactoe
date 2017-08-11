@@ -402,6 +402,7 @@ def update_state(stdscr, state, key):
 
 
 def draw_banner(stdscr):
+
     b = open('banner.txt', 'r')
     banner = b.read()
     curses.curs_set(0)
