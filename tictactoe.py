@@ -127,13 +127,14 @@ def find_lowest_empty_square(state, direction, preference):
 
 def is_tic_tac_toe(player, state):
 
-    winning_states = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7],
-                      [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+    # tuples are (start_index, offset)
+    winning_states = [(0, 1), (3, 1), (6, 1), (0, 3), (1, 3), (2, 3), (0, 4),
+                      (2, 2)]
 
     for s in winning_states:
         if (state['board_squares'][s[0]] == player
-                and state['board_squares'][s[1]] == player
-                and state['board_squares'][s[2]] == player):
+                and state['board_squares'][s[0] + s[1]] == player
+                and state['board_squares'][s[0] + (s[1] * 2)] == player):
             return True
     return False
 
@@ -277,8 +278,7 @@ def move_cursor_up(state):
     if state['cursor']['y'] > Y_EDGE:
         state['cursor']['y'] -= Y_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, "up",
-                                               [4, 1, 0, 2, 3, 5])
+            free_sq = find_lowest_empty_square(state, "up", [4, 1, 0, 2, 3, 5])
             coord = map_index_to_coordinate(free_sq)
             state['cursor']['x'] = coord[0]
             state['cursor']['y'] = coord[1]
@@ -302,6 +302,24 @@ def increment_state_ttl(state):
 
     state['message_expire_at'] = time.time() + DEFAULT_STATE_TTL
     return state
+
+
+def place_game_piece(player, state):
+
+    index = map_coordinate_to_index(state)
+
+    if state['board_squares'][index] == ' ':
+        state['board_squares'][index] = player
+        state['turn_num'] += 1
+        free_sq = find_nearest_empty_square(state)
+        coord = map_index_to_coordinate(free_sq)
+        state['cursor']['x'] = coord[0]
+        state['cursor']['y'] = coord[1]
+        state = increment_state_ttl(state)
+    else:
+        state['board_squares'][index] = player
+        state['turn_num'] += 1
+        state = increment_state_ttl(state)
 
 
 def update_state(stdscr, state, key):
@@ -351,8 +369,6 @@ def update_state(stdscr, state, key):
         except ValueError:
             pass
 
-        index = map_coordinate_to_index(new_state)
-
         # x's turn
         if state['turn_num'] % 2 is not 0:
             if cursorMoved:
@@ -360,18 +376,7 @@ def update_state(stdscr, state, key):
             else:
                 try:
                     if key == ord(' '):  # spacebar keypress
-                        if state['board_squares'][index] == ' ':
-                            new_state['board_squares'][index] = 'x'
-                            new_state['turn_num'] += 1
-                            free_sq = find_nearest_empty_square(new_state)
-                            coord = map_index_to_coordinate(free_sq)
-                            new_state['cursor']['x'] = coord[0]
-                            new_state['cursor']['y'] = coord[1]
-                            new_state = increment_state_ttl(new_state)
-                        else:
-                            new_state['board_squares'][index] = 'x'
-                            new_state['turn_num'] += 1
-                            new_state = increment_state_ttl(new_state)
+                        place_game_piece('x', new_state)
                     else:  # not spacebar keypress
                         new_state = increment_state_ttl(new_state)
                 except ValueError:
@@ -383,18 +388,7 @@ def update_state(stdscr, state, key):
             else:
                 try:
                     if key == ord(' '):  # spacebar keypress
-                        if state['board_squares'][index] == ' ':
-                            new_state['board_squares'][index] = 'o'
-                            new_state['turn_num'] += 1
-                            free_sq = find_nearest_empty_square(new_state)
-                            coord = map_index_to_coordinate(free_sq)
-                            new_state['cursor']['x'] = coord[0]
-                            new_state['cursor']['y'] = coord[1]
-                            new_state = increment_state_ttl(new_state)
-                        else:
-                            new_state['board_squares'][index] = 'o'
-                            new_state['turn_num'] += 1
-                            new_state = increment_state_ttl(new_state)
+                        place_game_piece('o', new_state)
                     else:  # not spacebar keypress
                         new_state = increment_state_ttl(new_state)
                 except ValueError:

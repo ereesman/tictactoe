@@ -38,8 +38,9 @@ def test_positive_render_horiz_rail():
     step = 4
     length_without_corners = (step * 3) - 1
     expected_rail = '+' + ('-' * length_without_corners) + '+'
+    width = (step * 3) + 1
 
-    assert render_horiz_rail() == expected_rail
+    assert render_horiz_rail(width) == expected_rail
 
 
 def test_positive_render_horiz_wall():
