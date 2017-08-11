@@ -80,7 +80,7 @@ def find_all_empty_squares(state):
     returns a list of indices of all empty squares
     '''
     empty_squares = []
-    game_piece_array = state['game_piece_locs']
+    game_piece_array = state['board_squares']
     for i in range(0, len(game_piece_array)):
         if game_piece_array[i] == ' ':
             empty_squares.append(i)
@@ -101,7 +101,7 @@ def find_lowest_empty_square(state, direction, preference):
     '''
     given state return the lowest empty square by index in target direction
     '''
-    game_piece_array = state['game_piece_locs']
+    game_piece_array = state['board_squares']
     if direction == 'up':
         for i in preference:  # priority order for upwards moves
             if (game_piece_array[i] == ' '
@@ -178,43 +178,27 @@ def draw_header_message(stdscr, state):
 
     if not is_game_over(stdscr, state):
         if state['turn_num'] % 2 is not 0:
-            draw_string_to_curses(stdscr,
-                                  '\n' + HORIZONTAL_OFFSET + x_turn_msg)
-
+            draw_string_to_curses(stdscr, x_turn_msg)
         else:
-            draw_string_to_curses(stdscr,
-                                  '\n' + HORIZONTAL_OFFSET + o_turn_msg)
-
+            draw_string_to_curses(stdscr, o_turn_msg)
     else:
         if is_tic_tac_toe('x', state):
-            draw_string_to_curses(stdscr,
-                                  '\n' + HORIZONTAL_OFFSET + x_win_msg)
-
+            draw_string_to_curses(stdscr, x_win_msg)
         elif is_tic_tac_toe('o', state):
-            draw_string_to_curses(stdscr,
-                                  '\n' + HORIZONTAL_OFFSET + o_win_msg)
-
+            draw_string_to_curses(stdscr, o_win_msg)
         else:
-            draw_string_to_curses(stdscr,
-                                  '\n' + HORIZONTAL_OFFSET + cats_game_msg)
+            draw_string_to_curses(stdscr, cats_game_msg)
 
 
 def draw_game_board(stdscr, state):
 
-    draw_string_to_curses(stdscr,
-                          '\n' + render_horiz_rail(BOARD_WIDTH))
-    draw_string_to_curses(stdscr,
-                          '\n' + render_game_square_lane(0, state))
-    draw_string_to_curses(stdscr,
-                          '\n' + render_horiz_wall())
-    draw_string_to_curses(stdscr,
-                          '\n' + render_game_square_lane(3, state))
-    draw_string_to_curses(stdscr,
-                          '\n' + render_horiz_wall())
-    draw_string_to_curses(stdscr,
-                          '\n' + render_game_square_lane(6, state))
-    draw_string_to_curses(stdscr,
-                          '\n' + render_horiz_rail(BOARD_WIDTH))
+    draw_string_to_curses(stdscr, render_horiz_rail(BOARD_WIDTH))
+    draw_string_to_curses(stdscr, render_game_square_lane(0, state))
+    draw_string_to_curses(stdscr, render_horiz_wall())
+    draw_string_to_curses(stdscr, render_game_square_lane(3, state))
+    draw_string_to_curses(stdscr, render_horiz_wall())
+    draw_string_to_curses(stdscr, render_game_square_lane(6, state))
+    draw_string_to_curses(stdscr, render_horiz_rail(BOARD_WIDTH))
 
 
 def render_horiz_rail(width):
@@ -245,318 +229,182 @@ def render_game_square_lane(start, state):
 
 def draw_game_timer(stdscr, state):
 
-    draw_string_to_curses(stdscr,
-                          '\n' + render_horiz_rail(CLOCK_WIDTH))
-    draw_string_to_curses(stdscr,
-                          '\n' + '|' + calculate_time_elapsed(state) + '|')
-    draw_string_to_curses(stdscr,
-                          '\n' + render_horiz_rail(CLOCK_WIDTH))
+    draw_string_to_curses(stdscr, render_horiz_rail(CLOCK_WIDTH))
+    draw_string_to_curses(stdscr, '|' + calculate_time_elapsed(state) + '|')
+    draw_string_to_curses(stdscr, render_horiz_rail(CLOCK_WIDTH))
 
 
 def draw_string_to_curses(stdscr, string):
 
     try:
-        stdscr.addstr(HORIZONTAL_OFFSET + string, curses.color_pair(1))
+        stdscr.addstr('\n' + HORIZONTAL_OFFSET + string, curses.color_pair(1))
     except Exception:
         stdscr.erase()
 
 
-def update_state(stdscr, curr_state, key):
+def move_cursor_left(state):
+
+    if state['cursor']['x'] > X_EDGE:
+        state['cursor']['x'] -= X_STEP
+        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
+            free_sq = find_lowest_empty_square(state, "left",
+                                               [3, 6, 4, 0, 1, 7])
+            coord = map_index_to_coordinate(free_sq)
+            state['cursor']['x'] = coord[0]
+            state['cursor']['y'] = coord[1]
+    return state
+
+
+def move_cursor_right(state):
+
+    if state['cursor']['x'] < (X_STEP * 3):
+        state['cursor']['x'] += X_STEP
+        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
+            if map_coordinate_to_index(state) == 0:
+                free_sq = find_lowest_empty_square(state, "right",
+                                                   [1, 2, 4, 5, 8, 7])
+            else:
+                free_sq = find_lowest_empty_square(state, "right",
+                                                   [5, 8, 4, 2, 7, 1])
+                coord = map_index_to_coordinate(free_sq)
+                state['cursor']['x'] = coord[0]
+                state['cursor']['y'] = coord[1]
+    return state
+
+
+def move_cursor_up(state):
+
+    if state['cursor']['y'] > 3:
+        state['cursor']['y'] -= 2
+        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
+            free_sq = find_lowest_empty_square(state, "up",
+                                               [4, 1, 0, 2, 3, 5])
+            coord = map_index_to_coordinate(free_sq)
+            state['cursor']['x'] = coord[0]
+            state['cursor']['y'] = coord[1]
+    return state
+
+
+def move_cursor_down(state):
+
+    if state['cursor']['y'] < 7:
+        state['cursor']['y'] += 2
+        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
+            free_sq = find_lowest_empty_square(state, "down",
+                                               [4, 7, 6, 8, 5, 3])
+            coord = map_index_to_coordinate(free_sq)
+            state['cursor']['x'] = coord[0]
+            state['cursor']['y'] = coord[1]
+    return state
+
+
+def increment_state_ttl(state):
+
+    state['message_expire_at'] = time.time() + DEFAULT_STATE_TTL
+    return state
+
+
+def update_state(stdscr, state, key):
 
     new_state = {
-        'turn_num': curr_state['turn_num'],
-        'game_piece_locs': curr_state['game_piece_locs'],
-        'message': {
-            'data': [],
-            'expire_at': time.time() + 1
-        },
+        'turn_num': state['turn_num'],
+        'board_squares': state['board_squares'],
         'cursor': {
-            'x': curr_state['cursor']['x'],
-            'y': curr_state['cursor']['y']
+            'x': state['cursor']['x'],
+            'y': state['cursor']['y']
         },
-        'game_start': curr_state['game_start']
+        'message_expire_at': state['message_expire_at']
     }
 
     # only enter the update routine if we received a keypress,
     # otherwise extend current state
     if key > 0:
         # determine if we only moved the cursor
-        '''
-        TODO(eddie): this routine could be made better/less brittle
-        by making the offsets relative to
-        a fixed position, i.e. top left coordinate of the gameboard
-        '''
         cursorMoved = False
         try:
             if key == curses.KEY_LEFT:
-                if curr_state['cursor']['x'] > 7:
-                    new_state['cursor']['x'] -= 4
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        free_sq = find_lowest_empty_square(
-                            curr_state, "left", [3, 6, 4, 0, 1, 7])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_left(state)
+                cursorMoved = True
             elif key == curses.KEY_RIGHT:
-                if curr_state['cursor']['x'] < 12:
-                    new_state['cursor']['x'] += 4
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        if map_coordinate_to_index(curr_state) == 0:
-                            free_sq = find_lowest_empty_square(
-                                curr_state, "right", [1, 2, 4, 5, 8, 7])
-                        else:
-                            free_sq = find_lowest_empty_square(
-                                curr_state, "right", [5, 8, 4, 2, 7, 1])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_right(state)
+                cursorMoved = True
             elif key == curses.KEY_UP:
-                if curr_state['cursor']['y'] > 3:
-                    new_state['cursor']['y'] -= 2
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        free_sq = find_lowest_empty_square(
-                            curr_state, "up", [4, 1, 0, 2, 3, 5])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_up(state)
+                cursorMoved = True
             elif key == curses.KEY_DOWN:
-                if curr_state['cursor']['y'] < 7:
-                    new_state['cursor']['y'] += 2
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        free_sq = find_lowest_empty_square(
-                            curr_state, "down", [4, 7, 6, 8, 5, 3])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_down(state)
+                cursorMoved = True
             # TODO(eddie): figure out some way to collapse arrow keys
             # and wasd controls
             elif chr(key) == 'a':
-                if curr_state['cursor']['x'] > 7:
-                    new_state['cursor']['x'] -= 4
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        free_sq = find_lowest_empty_square(
-                            curr_state, "left", [3, 6, 4, 0, 1, 7])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_left(state)
+                cursorMoved = True
             elif chr(key) == 'd':
-                if curr_state['cursor']['x'] < 12:
-                    new_state['cursor']['x'] += 4
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        if map_coordinate_to_index(curr_state) == 0:
-                            free_sq = find_lowest_empty_square(
-                                curr_state, "right", [1, 2, 4, 5, 8, 7])
-                        else:
-                            free_sq = find_lowest_empty_square(
-                                curr_state, "right", [5, 8, 4, 2, 7, 1])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_right(state)
+                cursorMoved = True
             elif chr(key) == 'w':
-                if curr_state['cursor']['y'] > 3:
-                    new_state['cursor']['y'] -= 2
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        free_sq = find_lowest_empty_square(
-                            curr_state, "up", [4, 1, 0, 2, 3, 5])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_up(state)
+                cursorMoved = True
             elif chr(key) == 's':
-                if curr_state['cursor']['y'] < 7:
-                    new_state['cursor']['y'] += 2
-                    if new_state['game_piece_locs'][map_coordinate_to_index(
-                            new_state)] != ' ':
-                        free_sq = find_lowest_empty_square(
-                            curr_state, "down", [4, 7, 6, 8, 5, 3])
-                        coord = map_index_to_coordinate(free_sq)
-                        new_state['cursor']['x'] = coord[0]
-                        new_state['cursor']['y'] = coord[1]
-                    cursorMoved = True
+                new_state = move_cursor_down(state)
+                cursorMoved = True
         except ValueError:
             pass
 
         index = map_coordinate_to_index(new_state)
 
         # x's turn
-        if curr_state['turn_num'] % 2 is not 0:
+        if state['turn_num'] % 2 is not 0:
             if cursorMoved:
-                game_board = construct_game_board(new_state['game_piece_locs'])
-                new_state['message'] = {
-                    'data': [
-                        PLAYER_TURN_MSG_TEMPLATE.format('x'), game_board,
-                        construct_game_timer(new_state)
-                    ],
-                    'expire_at':
-                    time.time() + 1
-                }
+                new_state = increment_state_ttl(new_state)
             else:
                 try:
                     if key == ord(' '):  # spacebar keypress
-                        if curr_state['game_piece_locs'][index] == ' ':
-                            new_state['game_piece_locs'][index] = 'x'
+                        if state['board_squares'][index] == ' ':
+                            new_state['board_squares'][index] = 'x'
                             new_state['turn_num'] += 1
                             free_sq = find_nearest_empty_square(new_state)
                             coord = map_index_to_coordinate(free_sq)
                             new_state['cursor']['x'] = coord[0]
                             new_state['cursor']['y'] = coord[1]
-                            game_board = construct_game_board(
-                                new_state['game_piece_locs'])
-                            new_state['message'] = {
-                                'data': [
-                                    PLAYER_TURN_MSG_TEMPLATE.format('o'),
-                                    game_board,
-                                    construct_game_timer(new_state)
-                                ],
-                                'expire_at':
-                                time.time() + 1
-                            }
+                            new_state = increment_state_ttl(new_state)
                         else:
-                            new_state['game_piece_locs'][index] = 'x'
+                            new_state['board_squares'][index] = 'x'
                             new_state['turn_num'] += 1
-                            game_board = construct_game_board(
-                                new_state['game_piece_locs'])
-                            new_state['message'] = {
-                                'data': [
-                                    PLAYER_TURN_MSG_TEMPLATE.format('o'),
-                                    game_board,
-                                    construct_game_timer(new_state)
-                                ],
-                                'expire_at':
-                                time.time() + 1
-                            }
+                            new_state = increment_state_ttl(new_state)
                     else:  # not spacebar keypress
-                        game_board = construct_game_board(
-                            new_state['game_piece_locs'])
-                        new_state['message'] = {
-                            'data': [
-                                PLAYER_TURN_MSG_TEMPLATE.format('x'),
-                                game_board,
-                                construct_game_timer(new_state)
-                            ],
-                            'expire_at':
-                            time.time() + 1
-                        }
+                        new_state = increment_state_ttl(new_state)
                 except ValueError:
-                    game_board = construct_game_board(
-                        new_state['game_piece_locs'])
-                    new_state['message'] = {
-                        'data': [
-                            PLAYER_TURN_MSG_TEMPLATE.format('x'), game_board,
-                            construct_game_timer(new_state)
-                        ],
-                        'expire_at':
-                        time.time() + 1
-                    }
+                    new_state = increment_state_ttl(new_state)
         # o's turn
         else:
             if cursorMoved:
-                game_board = construct_game_board(new_state['game_piece_locs'])
-                new_state['message'] = {
-                    'data': [
-                        PLAYER_TURN_MSG_TEMPLATE.format('o'), game_board,
-                        construct_game_timer(new_state)
-                    ],
-                    'expire_at':
-                    time.time() + 1
-                }
+                new_state = increment_state_ttl(new_state)
             else:
                 try:
                     if key == ord(' '):  # spacebar keypress
-                        if curr_state['game_piece_locs'][index] == ' ':
-                            new_state['game_piece_locs'][index] = 'o'
+                        if state['board_squares'][index] == ' ':
+                            new_state['board_squares'][index] = 'o'
                             new_state['turn_num'] += 1
                             free_sq = find_nearest_empty_square(new_state)
                             coord = map_index_to_coordinate(free_sq)
                             new_state['cursor']['x'] = coord[0]
                             new_state['cursor']['y'] = coord[1]
-                            game_board = construct_game_board(
-                                new_state['game_piece_locs'])
-                            new_state['message'] = {
-                                'data': [
-                                    PLAYER_TURN_MSG_TEMPLATE.format('x'),
-                                    game_board,
-                                    construct_game_timer(new_state)
-                                ],
-                                'expire_at':
-                                time.time() + 1
-                            }
+                            new_state = increment_state_ttl(new_state)
                         else:
-                            new_state['game_piece_locs'][index] = 'o'
+                            new_state['board_squares'][index] = 'o'
                             new_state['turn_num'] += 1
-                            game_board = construct_game_board(
-                                new_state['game_piece_locs'])
-                            new_state['message'] = {
-                                'data': [
-                                    PLAYER_TURN_MSG_TEMPLATE.format('x'),
-                                    game_board,
-                                    construct_game_timer(new_state)
-                                ],
-                                'expire_at':
-                                time.time() + 1
-                            }
+                            new_state = increment_state_ttl(new_state)
                     else:  # not spacebar keypress
-                        game_board = construct_game_board(
-                            new_state['game_piece_locs'])
-                        new_state['message'] = {
-                            'data': [
-                                PLAYER_TURN_MSG_TEMPLATE.format('o'),
-                                game_board,
-                                GAME_CLOCK_TEMPLATE.format(
-                                    calculate_time_elapsed(new_state))
-                            ],
-                            'expire_at':
-                            time.time() + 1
-                        }
+                        new_state = increment_state_ttl(new_state)
                 except ValueError:
-                    game_board = construct_game_board(
-                        new_state['game_piece_locs'])
-                    new_state['message'] = {
-                        'data': [
-                            PLAYER_TURN_MSG_TEMPLATE.format('o'), game_board,
-                            GAME_CLOCK_TEMPLATE.format(
-                                calculate_time_elapsed(new_state))
-                        ],
-                        'expire_at':
-                        time.time() + 1
-                    }
+                    new_state = increment_state_ttl(new_state)
         return new_state
     else:  # persist current screen state
         if new_state['turn_num'] % 2 is not 0:
-            game_board = construct_game_board(new_state['game_piece_locs'])
-            new_state['message'] = {
-                'data': [
-                    PLAYER_TURN_MSG_TEMPLATE.format('x'), game_board,
-                    GAME_CLOCK_TEMPLATE.format(
-                        calculate_time_elapsed(new_state))
-                ],
-                'expire_at':
-                time.time() + 1
-            }
+            new_state = increment_state_ttl(new_state)
         else:
-            game_board = construct_game_board(new_state['game_piece_locs'])
-            new_state['message'] = {
-                'data': [
-                    PLAYER_TURN_MSG_TEMPLATE.format('o'), game_board,
-                    GAME_CLOCK_TEMPLATE.format(
-                        calculate_time_elapsed(new_state))
-                ],
-                'expire_at':
-                time.time() + 1
-            }
+            new_state = increment_state_ttl(new_state)
         return new_state
 
 
