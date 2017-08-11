@@ -9,7 +9,7 @@ A game of tic tac toe
 '''
 
 BOARD_SQUARES = [' '] * 9
-GAME_START = time.time()
+GAME_START = None
 
 # default time to live of a game state in seconds
 DEFAULT_STATE_TTL = 1
@@ -33,6 +33,10 @@ def init_state():
     '''
     returns the starting game state
     '''
+    global GAME_START
+
+    GAME_START = time.time()
+
     return {
         'turn_num': 1,
         'board_squares': BOARD_SQUARES,
