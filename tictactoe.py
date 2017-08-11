@@ -401,16 +401,7 @@ def update_state(stdscr, state, key):
         return new_state
 
 
-def game_loop(stdscr):
-
-    # color
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    # non-blocking on input
-    stdscr.nodelay(1)
-    # allow function keys to be interpreted as a single value
-    stdscr.keypad(1)
-
-    # draw banner
+def draw_banner(stdscr):
     b = open('banner.txt', 'r')
     banner = b.read()
     curses.curs_set(0)
@@ -428,16 +419,8 @@ def game_loop(stdscr):
         else:
             stdscr.erase()
 
-    # game start
-    state = init_state()
-    curses.curs_set(1)
-    # main game loop
-    while not is_game_over(stdscr, state):
-        now = time.time()
-        draw(stdscr, state, now)
-        curses.napms(100)
-        key = stdscr.getch()
-        state = update_state(stdscr, state, key)
+
+def draw_game_over(stdscr, state, now):
 
     state['cursor']['y'] = 0
     state['cursor']['x'] = 0
@@ -446,6 +429,33 @@ def game_loop(stdscr):
         input('GAME OVER! CTRL + C TO QUIT!')
     except KeyboardInterrupt:
         pass
+
+
+def game_loop(stdscr):
+
+    # color
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    # non-blocking on input
+    stdscr.nodelay(1)
+    # allow function keys to be interpreted as a single value
+    stdscr.keypad(1)
+
+    # draw banner
+    draw_banner(stdscr)
+
+    # game start
+    state = init_state()
+    curses.curs_set(1)
+
+    # main game loop
+    while not is_game_over(stdscr, state):
+        now = time.time()
+        draw(stdscr, state, now)
+        curses.napms(100)
+        key = stdscr.getch()
+        state = update_state(stdscr, state, key)
+
+    draw_game_over(stdscr, state, now)
 
 
 if __name__ == '__main__':
