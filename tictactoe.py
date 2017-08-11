@@ -258,7 +258,7 @@ def move_cursor_left(state):
 
 def move_cursor_right(state):
 
-    if state['cursor']['x'] < (X_STEP * 3):
+    if state['cursor']['x'] < (X_EDGE * 2) + 1:
         state['cursor']['x'] += X_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
             if map_coordinate_to_index(state) == 0:
@@ -287,8 +287,11 @@ def move_cursor_up(state):
 
 def move_cursor_down(state):
 
-    if state['cursor']['y'] < (Y_EDGE * 3):
+    if state['cursor']['y'] < (Y_EDGE * 2) + 1:
         state['cursor']['y'] += Y_STEP
+        logging.debug('X: {}'.format(state['cursor']['x']))
+        logging.debug('Y: {}'.format(state['cursor']['y']))
+        logging.debug('INDEX: {}'.format(map_coordinate_to_index(state)))
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
             free_sq = find_lowest_empty_square(state, "down",
                                                [4, 7, 6, 8, 5, 3])
@@ -308,18 +311,13 @@ def place_game_piece(player, state):
 
     index = map_coordinate_to_index(state)
 
-    if state['board_squares'][index] == ' ':
-        state['board_squares'][index] = player
-        state['turn_num'] += 1
-        free_sq = find_nearest_empty_square(state)
-        coord = map_index_to_coordinate(free_sq)
-        state['cursor']['x'] = coord[0]
-        state['cursor']['y'] = coord[1]
-        state = increment_state_ttl(state)
-    else:
-        state['board_squares'][index] = player
-        state['turn_num'] += 1
-        state = increment_state_ttl(state)
+    state['board_squares'][index] = player
+    state['turn_num'] += 1
+    free_sq = find_nearest_empty_square(state)
+    coord = map_index_to_coordinate(free_sq)
+    state['cursor']['x'] = coord[0]
+    state['cursor']['y'] = coord[1]
+    state = increment_state_ttl(state)
 
 
 def update_state(stdscr, state, key):
