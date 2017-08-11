@@ -289,8 +289,6 @@ def move_cursor_down(state):
 
     if state['cursor']['y'] < (Y_EDGE * 3):
         state['cursor']['y'] += Y_STEP
-        logging.debug('X COORD: {}'.format(state['cursor']['x']))
-        logging.debug('Y COORD: {}'.format(state['cursor']['y']))
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
             free_sq = find_lowest_empty_square(state, "down",
                                                [4, 7, 6, 8, 5, 3])
