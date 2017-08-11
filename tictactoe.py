@@ -9,18 +9,6 @@ A game of tic tac toe
 '''
 
 BOARD_SQUARES = [' '] * 9
-
-# PLAYER_TURN_MSG_TEMPLATE = ('\n' + '    ' + 'Player {0}\'s turn!')
-
-# GAME_BOARD_TEMPLATE = (
-#   '\n' + '     ' + '+-----------+' + '\n' + '     ' + '| {0} | {1} | {2} |' +
-#   '\n' + '     ' + '|-----------|' + '\n' + '     ' + '| {3} | {4} | {5} |' +
-#   '\n' + '     ' + '|-----------|' + '\n' + '     ' + '| {6} | {7} | {8} |' +
-#   '\n' + '     ' + '+-----------+')
-
-# GAME_CLOCK_TEMPLATE = ('\n' + '       ' + '+-------+' + '\n' + '       ' +
-#                        '|{0}|' + '\n' + '       ' + '+-------+' + '\n')
-
 GAME_START = time.time()
 
 # default time to live of a game state in seconds
@@ -35,12 +23,16 @@ Y_EDGE = 3
 X_STEP = 4
 Y_STEP = 2
 
+BOARD_WIDTH = (X_STEP * 3) + 1
+CLOCK_WIDTH = 9
+
+HORIZONTAL_OFFSET = 5 * ' '
+
 
 def init_state():
     '''
     returns the starting game state
     '''
-
     return {
         'turn_num': 1,
         'board_squares': BOARD_SQUARES,
@@ -133,24 +125,6 @@ def find_lowest_empty_square(state, direction, preference):
     return map_coordinate_to_index(state)  # don't move the cursor
 
 
-# def construct_game_board(game_piece_locs):
-
-#     return GAME_BOARD_TEMPLATE.format(
-#         GAME_PIECE_LOCATIONS[0],
-#         GAME_PIECE_LOCATIONS[1],
-#         GAME_PIECE_LOCATIONS[2],
-#         GAME_PIECE_LOCATIONS[3],
-#         GAME_PIECE_LOCATIONS[4],
-#         GAME_PIECE_LOCATIONS[5],
-#         GAME_PIECE_LOCATIONS[6],
-#         GAME_PIECE_LOCATIONS[7],
-#         GAME_PIECE_LOCATIONS[8])
-
-# def construct_game_timer(state):
-
-#     return GAME_CLOCK_TEMPLATE.format(calculate_time_elapsed(state))
-
-
 def is_tic_tac_toe(player, state):
 
     winning_states = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7],
@@ -166,35 +140,11 @@ def is_tic_tac_toe(player, state):
 
 def is_game_over(stdscr, state):
 
-    x_wins_msg = '\n\n    Player x wins!'
-    o_wins_msg = '\n\n    Player o wins!'
-    draw_msg = '\n\n        Draw!'
-
     if is_tic_tac_toe('x', state):
-        game_board = construct_game_board(state['game_piece_locs'])
-        state['message'] = {
-            'data': [
-                x_wins_msg,
-                game_board,
-            ],
-            'expire_at': time.time() + 1
-        }
         return True
     elif is_tic_tac_toe('o', state):
-        game_board = construct_game_board(state['game_piece_locs'])
-        state['message'] = {
-            'data': [o_wins_msg, game_board,
-                     construct_game_timer(state)],
-            'expire_at': time.time() + 1
-        }
         return True
     elif state['turn_num'] == 10:
-        game_board = construct_game_board(state['game_piece_locs'])
-        state['message'] = {
-            'data': [draw_msg, game_board,
-                     construct_game_timer(state)],
-            'expire_at': time.time() + 1
-        }
         return True
     else:
         return False
@@ -202,27 +152,113 @@ def is_game_over(stdscr, state):
 
 def draw(stdscr, state, now):
 
-    if not is_game_over(stdscr, state):
-        stdscr.erase()
-        if now < state['message']['expire_at']:
-            for msg in state['message']['data']:
-                try:
-                    stdscr.addstr(msg, curses.color_pair(1))
-                except Exception:
-                    stdscr.erase()
-            # draw timer
-            try:
-                stdscr.addstr(
-                    construct_game_timer(state), curses.color_pair(1))
-            except Exception:
-                stdscr.erase()
-
+    stdscr.erase()
+    if now < state['message_expire_at']:
+        # draw header message
+        draw_header_message(stdscr, state)
+        # draw game board
+        draw_game_board(stdscr, state)
+        # draw timer
+        draw_game_timer(stdscr, state)
     # move the cursor
     try:
         stdscr.addstr(state['cursor']['y'], state['cursor']['x'], '')
     except Exception:
         stdscr.erase()
     stdscr.refresh()
+
+
+def draw_header_message(stdscr, state):
+
+    x_turn_msg = 'Player x\'s turn!'
+    o_turn_msg = 'Player o\'s turn!'
+    x_win_msg = 'Player x wins!'
+    o_win_msg = 'Player o wins!'
+    cats_game_msg = 'Cat\'s Game!'
+
+    if not is_game_over(stdscr, state):
+        if state['turn_num'] % 2 is not 0:
+            draw_string_to_curses(stdscr,
+                                  '\n' + HORIZONTAL_OFFSET + x_turn_msg)
+
+        else:
+            draw_string_to_curses(stdscr,
+                                  '\n' + HORIZONTAL_OFFSET + o_turn_msg)
+
+    else:
+        if is_tic_tac_toe('x', state):
+            draw_string_to_curses(stdscr,
+                                  '\n' + HORIZONTAL_OFFSET + x_win_msg)
+
+        elif is_tic_tac_toe('o', state):
+            draw_string_to_curses(stdscr,
+                                  '\n' + HORIZONTAL_OFFSET + o_win_msg)
+
+        else:
+            draw_string_to_curses(stdscr,
+                                  '\n' + HORIZONTAL_OFFSET + cats_game_msg)
+
+
+def draw_game_board(stdscr, state):
+
+    draw_string_to_curses(stdscr,
+                          '\n' + render_horiz_rail(BOARD_WIDTH))
+    draw_string_to_curses(stdscr,
+                          '\n' + render_game_square_lane(0, state))
+    draw_string_to_curses(stdscr,
+                          '\n' + render_horiz_wall())
+    draw_string_to_curses(stdscr,
+                          '\n' + render_game_square_lane(3, state))
+    draw_string_to_curses(stdscr,
+                          '\n' + render_horiz_wall())
+    draw_string_to_curses(stdscr,
+                          '\n' + render_game_square_lane(6, state))
+    draw_string_to_curses(stdscr,
+                          '\n' + render_horiz_rail(BOARD_WIDTH))
+
+
+def render_horiz_rail(width):
+
+    rail_str = ''
+    for i in range(0, width):
+        if i == 0 or i == width - 1:
+            rail_str = rail_str + '+'
+        else:
+            rail_str = rail_str + ('-')
+    return rail_str
+
+
+def render_horiz_wall():
+
+    return '-' * BOARD_WIDTH
+
+
+def render_game_square_lane(start, state):
+
+    lane_str = '|'
+    pad = ' ' * (X_STEP / 4)
+    for i in range(0, 3):
+        lane_str = lane_str + pad + state['board_squares'][start + i] \
+                   + pad + '|'
+    return lane_str
+
+
+def draw_game_timer(stdscr, state):
+
+    draw_string_to_curses(stdscr,
+                          '\n' + render_horiz_rail(CLOCK_WIDTH))
+    draw_string_to_curses(stdscr,
+                          '\n' + '|' + calculate_time_elapsed(state) + '|')
+    draw_string_to_curses(stdscr,
+                          '\n' + render_horiz_rail(CLOCK_WIDTH))
+
+
+def draw_string_to_curses(stdscr, string):
+
+    try:
+        stdscr.addstr(HORIZONTAL_OFFSET + string, curses.color_pair(1))
+    except Exception:
+        stdscr.erase()
 
 
 def update_state(stdscr, curr_state, key):
