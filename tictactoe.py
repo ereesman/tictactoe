@@ -394,10 +394,7 @@ def update_state(stdscr, state, key):
                     new_state = increment_state_ttl(new_state)
         return new_state
     else:  # persist current screen state
-        if new_state['turn_num'] % 2 is not 0:
-            new_state = increment_state_ttl(new_state)
-        else:
-            new_state = increment_state_ttl(new_state)
+        new_state = increment_state_ttl(new_state)
         return new_state
 
 
@@ -408,12 +405,9 @@ def draw_banner(stdscr):
     curses.curs_set(0)
     game_is_started = False
     while not game_is_started:
-        try:
-            stdscr.addstr(banner, curses.color_pair(1))
-            stdscr.refresh()
-            curses.napms(100)
-        except Exception:
-            stdscr.erase()
+        draw_string_to_curses(stdscr, banner)
+        stdscr.refresh()
+        curses.napms(100)
         c = stdscr.getch()
         if c > 0:
             game_is_started = True
