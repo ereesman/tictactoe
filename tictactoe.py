@@ -231,15 +231,20 @@ def draw_string_to_curses(stdscr, string):
         stdscr.erase()
 
 
+def move_cursor(state, preference):
+
+    if state['board_squares'][map_coordinate_to_index(state)] != ' ':
+        free_sq = find_lowest_empty_square(state, preference)
+        coord = map_index_to_coordinate(free_sq)
+        state['cursor']['x'] = coord[0]
+        state['cursor']['y'] = coord[1]
+
+
 def move_cursor_left(state):
 
     if state['cursor']['x'] > X_EDGE:
         state['cursor']['x'] -= X_STEP
-        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, [3, 6, 4, 0, 1, 7])
-            coord = map_index_to_coordinate(free_sq)
-            state['cursor']['x'] = coord[0]
-            state['cursor']['y'] = coord[1]
+        move_cursor(state, [3, 6, 4, 0, 1, 7])
     return state
 
 
@@ -262,11 +267,7 @@ def move_cursor_up(state):
 
     if state['cursor']['y'] > Y_EDGE:
         state['cursor']['y'] -= Y_STEP
-        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, [4, 1, 0, 2, 3, 5])
-            coord = map_index_to_coordinate(free_sq)
-            state['cursor']['x'] = coord[0]
-            state['cursor']['y'] = coord[1]
+        move_cursor(state, [4, 1, 0, 2, 3, 5])
     return state
 
 
@@ -274,11 +275,7 @@ def move_cursor_down(state):
 
     if state['cursor']['y'] < (Y_EDGE * 2) + 1:
         state['cursor']['y'] += Y_STEP
-        if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, [4, 7, 6, 8, 5, 3])
-            coord = map_index_to_coordinate(free_sq)
-            state['cursor']['x'] = coord[0]
-            state['cursor']['y'] = coord[1]
+        move_cursor(state, [4, 7, 6, 8, 5, 3])
     return state
 
 
