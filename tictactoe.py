@@ -101,31 +101,15 @@ def find_nearest_empty_square(state):
     return closest
 
 
-def find_lowest_empty_square(state, direction, preference):
+def find_lowest_empty_square(state, preference):
     '''
     given state return the lowest empty square by index in target direction
     '''
     game_piece_array = state['board_squares']
-    if direction == 'up':
-        for i in preference:  # priority order for upwards moves
-            if (game_piece_array[i] == ' '
-                    and map_coordinate_to_index(state) != i):
-                return i
-    elif direction == 'down':
-        for i in preference:
-            if (game_piece_array[i] == ' '
-                    and map_coordinate_to_index(state) != i):
-                return i
-    elif direction == 'left':
-        for i in preference:
-            if (game_piece_array[i] == ' '
-                    and map_coordinate_to_index(state) != i):
-                return i
-    elif direction == 'right':
-        for i in preference:
-            if (game_piece_array[i] == ' '
-                    and map_coordinate_to_index(state) != i):
-                return i
+    for i in preference:
+        if (game_piece_array[i] == ' '
+                and map_coordinate_to_index(state) != i):
+            return i
     return map_coordinate_to_index(state)  # don't move the cursor
 
 
@@ -252,8 +236,7 @@ def move_cursor_left(state):
     if state['cursor']['x'] > X_EDGE:
         state['cursor']['x'] -= X_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, "left",
-                                               [3, 6, 4, 0, 1, 7])
+            free_sq = find_lowest_empty_square(state, [3, 6, 4, 0, 1, 7])
             coord = map_index_to_coordinate(free_sq)
             state['cursor']['x'] = coord[0]
             state['cursor']['y'] = coord[1]
@@ -266,11 +249,9 @@ def move_cursor_right(state):
         state['cursor']['x'] += X_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
             if map_coordinate_to_index(state) == 0:
-                free_sq = find_lowest_empty_square(state, "right",
-                                                   [1, 2, 4, 5, 8, 7])
+                free_sq = find_lowest_empty_square(state, [1, 2, 4, 5, 8, 7])
             else:
-                free_sq = find_lowest_empty_square(state, "right",
-                                                   [5, 8, 4, 2, 7, 1])
+                free_sq = find_lowest_empty_square(state, [5, 8, 4, 2, 7, 1])
                 coord = map_index_to_coordinate(free_sq)
                 state['cursor']['x'] = coord[0]
                 state['cursor']['y'] = coord[1]
@@ -282,7 +263,7 @@ def move_cursor_up(state):
     if state['cursor']['y'] > Y_EDGE:
         state['cursor']['y'] -= Y_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, "up", [4, 1, 0, 2, 3, 5])
+            free_sq = find_lowest_empty_square(state, [4, 1, 0, 2, 3, 5])
             coord = map_index_to_coordinate(free_sq)
             state['cursor']['x'] = coord[0]
             state['cursor']['y'] = coord[1]
@@ -294,8 +275,7 @@ def move_cursor_down(state):
     if state['cursor']['y'] < (Y_EDGE * 2) + 1:
         state['cursor']['y'] += Y_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
-            free_sq = find_lowest_empty_square(state, "down",
-                                               [4, 7, 6, 8, 5, 3])
+            free_sq = find_lowest_empty_square(state, [4, 7, 6, 8, 5, 3])
             coord = map_index_to_coordinate(free_sq)
             state['cursor']['x'] = coord[0]
             state['cursor']['y'] = coord[1]
