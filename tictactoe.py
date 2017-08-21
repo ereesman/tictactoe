@@ -3,7 +3,6 @@ import math
 import datetime
 import logging
 import curses
-import copy
 from curses import wrapper as curses_wrapper
 
 
@@ -316,7 +315,6 @@ def update_state(stdscr, state, key):
     if key > 0:
         cursorMoved = False
         try:
-            logging.debug('key = {}'.format(key))
             if key == 97 or key == 260:
                 new_state = move_cursor_left(state)
                 cursorMoved = True
