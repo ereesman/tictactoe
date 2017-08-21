@@ -3,6 +3,7 @@ import math
 import datetime
 import logging
 import curses
+import copy
 from curses import wrapper as curses_wrapper
 
 
@@ -37,7 +38,6 @@ def init_state():
     returns the starting game state
     '''
     global GAME_START
-
     GAME_START = time.time()
 
     return {
@@ -313,36 +313,20 @@ def update_state(stdscr, state, key):
         'message_expire_at': state['message_expire_at']
     }
 
-    # only enter the update routine if we received a keypress,
-    # otherwise extend current state
     if key > 0:
-        # determine if we only moved the cursor
         cursorMoved = False
         try:
-            if key == curses.KEY_LEFT:
+            logging.debug('key = {}'.format(key))
+            if key == 97 or key == 260:
                 new_state = move_cursor_left(state)
                 cursorMoved = True
-            elif key == curses.KEY_RIGHT:
+            elif key == 100 or key == 261:
                 new_state = move_cursor_right(state)
                 cursorMoved = True
-            elif key == curses.KEY_UP:
+            elif key == 119 or key == 259:
                 new_state = move_cursor_up(state)
                 cursorMoved = True
-            elif key == curses.KEY_DOWN:
-                new_state = move_cursor_down(state)
-                cursorMoved = True
-            # TODO(eddie): figure out some way to collapse arrow keys
-            # and wasd controls
-            elif chr(key) == 'a':
-                new_state = move_cursor_left(state)
-                cursorMoved = True
-            elif chr(key) == 'd':
-                new_state = move_cursor_right(state)
-                cursorMoved = True
-            elif chr(key) == 'w':
-                new_state = move_cursor_up(state)
-                cursorMoved = True
-            elif chr(key) == 's':
+            elif key == 115 or key == 258:
                 new_state = move_cursor_down(state)
                 cursorMoved = True
         except ValueError:
@@ -402,7 +386,7 @@ def draw_game_over(stdscr, state, now):
     draw(stdscr, state, now)
     try:
         input('GAME OVER! CTRL + C TO QUIT!')
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SyntaxError):
         pass
 
 
