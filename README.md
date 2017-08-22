@@ -1,6 +1,6 @@
 ![demo](demo.gif)
 
-A terminal Tic-Tac-Toe in curses.
+A terminal Tic-Tac-Toe in [curses](https://en.wikipedia.org/wiki/Curses_(programming_library)).
 
 Tested on:
 
