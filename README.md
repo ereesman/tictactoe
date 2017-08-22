@@ -9,7 +9,6 @@ MacOS El Capitan
 - iTerm2 (plain and under tmux)
 
 Ubuntu 14.04
-
 - terminal (plain and under tmux)
 
 Please open a GitHub Issue for any bug reports, or send a Pull Request!
