@@ -1,12 +1,15 @@
 ![demo](demo.gif)
 
-###
+A terminal Tic-Tac-Toe in curses.
+
 Tested on:
-### MacOS El Capitan
+
+MacOS El Capitan
 - Terminal.app (plain and under tmux)
 - iTerm2 (plain and under tmux)
-### Ubuntu 14.04
+
+Ubuntu 14.04
+
 - terminal (plain and under tmux)
-###
 
 Please open a GitHub Issue for any bug reports, or send a Pull Request!
