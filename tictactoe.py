@@ -4,12 +4,9 @@ import datetime
 import logging
 import curses
 from curses import wrapper as curses_wrapper
-
-
 '''
 A game of tic tac toe
 '''
-
 
 BOARD_SQUARES = [' '] * 9
 GAME_START = None
@@ -300,6 +297,16 @@ def place_game_piece(player, state):
     state = increment_state_ttl(state)
 
 
+def execute_player_move(state, key, player):
+    try:
+        if key == ord(' '):  # spacebar keypress
+            place_game_piece(player, state)
+        else:  # not spacebar keypress
+            state = increment_state_ttl(state)
+    except ValueError:
+        state = increment_state_ttl(state)
+
+
 def update_state(stdscr, state, key):
 
     new_state = {
@@ -335,25 +342,13 @@ def update_state(stdscr, state, key):
             if cursorMoved:
                 new_state = increment_state_ttl(new_state)
             else:
-                try:
-                    if key == ord(' '):  # spacebar keypress
-                        place_game_piece('x', new_state)
-                    else:  # not spacebar keypress
-                        new_state = increment_state_ttl(new_state)
-                except ValueError:
-                    new_state = increment_state_ttl(new_state)
+                execute_player_move(new_state, key, 'x')
         # o's turn
         else:
             if cursorMoved:
                 new_state = increment_state_ttl(new_state)
             else:
-                try:
-                    if key == ord(' '):  # spacebar keypress
-                        place_game_piece('o', new_state)
-                    else:  # not spacebar keypress
-                        new_state = increment_state_ttl(new_state)
-                except ValueError:
-                    new_state = increment_state_ttl(new_state)
+                execute_player_move(new_state, key, 'o')
         return new_state
     else:  # persist current screen state
         new_state = increment_state_ttl(new_state)
