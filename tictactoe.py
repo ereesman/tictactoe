@@ -275,7 +275,7 @@ def move_cursor_down(state):
 
     if state['cursor']['y'] < (Y_EDGE * 2) + 1:
         state['cursor']['y'] += Y_STEP
-        move_cursor(state, [4, 7, 6, 8, 5, 3])
+        move_cursor(state, [8, 4, 7, 6, 8, 5, 3])
     return state
 
 
