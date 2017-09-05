@@ -16,7 +16,6 @@ DEFAULT_STATE_TTL = 1
 
 HORIZONTAL_OFFSET_INT = 5
 HORIZONTAL_OFFSET = HORIZONTAL_OFFSET_INT * ' '
-
 '''
 x and y delta of board squares
 both need to be even numbers, for best
@@ -25,7 +24,6 @@ as your Y value
 '''
 X_STEP = 8
 Y_STEP = 4
-
 '''
 x and y delta of top left curses/screen
 position and top left board square
@@ -205,7 +203,7 @@ def draw_game_board(stdscr, state):
 
 
 def draw_wide_game_square_lane(stdscr, start, state):
-    
+
     for i in range(1, Y_STEP):
         if i == math.ceil(Y_STEP / 2.0):
             draw_string_to_curses(stdscr, render_game_square_lane(
