@@ -5,7 +5,7 @@ import logging
 import curses
 from curses import wrapper as curses_wrapper
 '''
-A game of tic tac toe
+A game of tic tac toe in curses.
 '''
 
 BOARD_SQUARES = [' '] * 9
@@ -211,7 +211,7 @@ def render_game_square_lane(start, state):
     pad = ' ' * (X_STEP / 4)
     for i in range(0, 3):
         lane_str = lane_str + pad + state['board_squares'][start + i] \
-                   + pad + '|'
+            + pad + '|'
     return lane_str
 
 
@@ -266,7 +266,7 @@ def move_cursor_up(state):
 
     if state['cursor']['y'] > Y_EDGE:
         state['cursor']['y'] -= Y_STEP
-        move_cursor(state, [4, 1, 0, 2, 3, 5])
+        move_cursor(state, [0, 4, 1, 0, 2, 3, 5])
     return state
 
 
