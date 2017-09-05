@@ -255,7 +255,8 @@ def move_cursor_right(state):
             if map_coordinate_to_index(state) == 0:
                 free_sq = find_lowest_empty_square(state, [1, 2, 4, 5, 8, 7])
             else:
-                free_sq = find_lowest_empty_square(state, [5, 8, 4, 2, 7, 1])
+                free_sq = find_lowest_empty_square(state,
+                                                   [2, 5, 8, 4, 2, 7, 1])
                 coord = map_index_to_coordinate(free_sq)
                 state['cursor']['x'] = coord[0]
                 state['cursor']['y'] = coord[1]
