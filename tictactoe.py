@@ -14,19 +14,27 @@ GAME_START = None
 # default time to live of a game state in seconds
 DEFAULT_STATE_TTL = 1
 
-# x and y delta of top left curses/screen
-# position and top left board square
-X_EDGE = 7
-Y_EDGE = 3
+HORIZONTAL_OFFSET_INT = 5
+HORIZONTAL_OFFSET = HORIZONTAL_OFFSET_INT * ' '
 
-# x and y delta of board squares
-X_STEP = 4
-Y_STEP = 2
+'''
+x and y delta of board squares
+both need to be even numbers, for best
+results use an X value that is twice as large
+as your Y value
+'''
+X_STEP = 8
+Y_STEP = 4
+
+'''
+x and y delta of top left curses/screen
+position and top left board square
+'''
+X_EDGE = HORIZONTAL_OFFSET_INT + (X_STEP / 2)
+Y_EDGE = 2 + (Y_STEP / 2)
 
 BOARD_WIDTH = (X_STEP * 3) + 1
 CLOCK_WIDTH = 9
-
-HORIZONTAL_OFFSET = 5 * ' '
 
 
 def init_state():
@@ -181,12 +189,29 @@ def draw_header_message(stdscr, state):
 def draw_game_board(stdscr, state):
 
     draw_string_to_curses(stdscr, render_horiz_rail(BOARD_WIDTH))
-    draw_string_to_curses(stdscr, render_game_square_lane(0, state))
-    draw_string_to_curses(stdscr, render_horiz_wall())
-    draw_string_to_curses(stdscr, render_game_square_lane(3, state))
-    draw_string_to_curses(stdscr, render_horiz_wall())
-    draw_string_to_curses(stdscr, render_game_square_lane(6, state))
+    if Y_STEP == 2:
+        draw_string_to_curses(stdscr, render_game_square_lane(0, state))
+        draw_string_to_curses(stdscr, render_horiz_wall())
+        draw_string_to_curses(stdscr, render_game_square_lane(3, state))
+        draw_string_to_curses(stdscr, render_horiz_wall())
+        draw_string_to_curses(stdscr, render_game_square_lane(6, state))
+    else:
+        draw_wide_game_square_lane(stdscr, 0, state)
+        draw_string_to_curses(stdscr, render_horiz_wall())
+        draw_wide_game_square_lane(stdscr, 3, state)
+        draw_string_to_curses(stdscr, render_horiz_wall())
+        draw_wide_game_square_lane(stdscr, 6, state)
     draw_string_to_curses(stdscr, render_horiz_rail(BOARD_WIDTH))
+
+
+def draw_wide_game_square_lane(stdscr, start, state):
+    
+    for i in range(1, Y_STEP):
+        if i == math.ceil(Y_STEP / 2.0):
+            draw_string_to_curses(stdscr, render_game_square_lane(
+                start, state))
+        else:
+            draw_string_to_curses(stdscr, render_empty_game_square_lane())
 
 
 def render_horiz_rail(width):
@@ -208,10 +233,19 @@ def render_horiz_wall():
 def render_game_square_lane(start, state):
 
     lane_str = '|'
-    pad = ' ' * (X_STEP / 4)
+    pad = ' ' * int(math.ceil(X_STEP / 2.0) - 1)
     for i in range(0, 3):
         lane_str = lane_str + pad + state['board_squares'][start + i] \
-            + pad + '|'
+                   + pad + '|'
+    return lane_str
+
+
+def render_empty_game_square_lane():
+
+    lane_str = '|'
+    pad = ' ' * int(math.ceil(X_STEP / 2.0) - 1)
+    for i in range(0, 3):
+        lane_str = lane_str + pad + ' ' + pad + '|'
     return lane_str
 
 
@@ -249,7 +283,7 @@ def move_cursor_left(state):
 
 def move_cursor_right(state):
 
-    if state['cursor']['x'] < (X_EDGE * 2) + 1:
+    if state['cursor']['x'] < (X_EDGE + X_STEP) + 1:
         state['cursor']['x'] += X_STEP
         if state['board_squares'][map_coordinate_to_index(state)] != ' ':
             if map_coordinate_to_index(state) == 0:
@@ -273,7 +307,7 @@ def move_cursor_up(state):
 
 def move_cursor_down(state):
 
-    if state['cursor']['y'] < (Y_EDGE * 2) + 1:
+    if state['cursor']['y'] < (Y_EDGE + Y_STEP) + 1:
         state['cursor']['y'] += Y_STEP
         move_cursor(state, [8, 4, 7, 6, 8, 5, 3])
     return state
