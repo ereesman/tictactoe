@@ -22,8 +22,8 @@ both need to be even numbers, for best
 results use an X value that is twice as large
 as your Y value
 '''
-X_STEP = 8
-Y_STEP = 4
+X_STEP = 4
+Y_STEP = 2
 '''
 x and y delta of top left curses/screen
 position and top left board square
@@ -187,22 +187,15 @@ def draw_header_message(stdscr, state):
 def draw_game_board(stdscr, state):
 
     draw_string_to_curses(stdscr, render_horiz_rail(BOARD_WIDTH))
-    if Y_STEP == 2:
-        draw_string_to_curses(stdscr, render_game_square_lane(0, state))
-        draw_string_to_curses(stdscr, render_horiz_wall())
-        draw_string_to_curses(stdscr, render_game_square_lane(3, state))
-        draw_string_to_curses(stdscr, render_horiz_wall())
-        draw_string_to_curses(stdscr, render_game_square_lane(6, state))
-    else:
-        draw_wide_game_square_lane(stdscr, 0, state)
-        draw_string_to_curses(stdscr, render_horiz_wall())
-        draw_wide_game_square_lane(stdscr, 3, state)
-        draw_string_to_curses(stdscr, render_horiz_wall())
-        draw_wide_game_square_lane(stdscr, 6, state)
+    draw_game_square_lane(stdscr, 0, state)
+    draw_string_to_curses(stdscr, render_horiz_wall())
+    draw_game_square_lane(stdscr, 3, state)
+    draw_string_to_curses(stdscr, render_horiz_wall())
+    draw_game_square_lane(stdscr, 6, state)
     draw_string_to_curses(stdscr, render_horiz_rail(BOARD_WIDTH))
 
 
-def draw_wide_game_square_lane(stdscr, start, state):
+def draw_game_square_lane(stdscr, start, state):
 
     for i in range(1, Y_STEP):
         if i == math.ceil(Y_STEP / 2.0):
